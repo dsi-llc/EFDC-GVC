@@ -1,0 +1,79 @@
+C
+C**********************************************************************C
+C**********************************************************************C
+C**********************************************************************C
+C
+      REAL FUNCTION CSEDRESS(DENBULK,WRSPO,VDRO,VDR,VDRC,IOPT)
+C
+C **  THIS SUBROUTINE IS PART OF  EFDC-FULL VERSION 1.0a 
+C
+C **  LAST MODIFIED BY JOHN HAMRICK ON 1 NOVEMBER 2001
+C
+C----------------------------------------------------------------------C
+C
+C CHANGE RECORD
+C DATE MODIFIED     BY                 DATE APPROVED    BY
+C
+C----------------------------------------------------------------------C
+C
+      INCLUDE 'EFDC.PAR'
+C
+C **  CALCULATES SURFACE EROSION RATE OF COHESIVE 
+C **  SEDIMENT AS A FUNCTION OF BED BULK DENSITY
+C
+C **  IOPT=1  BASED ON 
+C **
+C **  HWANG, K. N., AND A. J. MEHTA, 1989: FINE SEDIMENT ERODIBILITY
+C **  IN LAKE OKEECHOBEE FLORIDA. COASTAL AND OCEANOGRAPHIC ENGINEERING
+C **  DEPARTMENT, UNIVERSITY OF FLORIDA, GAINESVILLE, FL32661
+C
+C **  IOPT=2 & 3 BASED ON J. M. HAMRICK'S MODIFICATION OF
+C **
+C **  SANFORD, L.P., AND J. P. Y. MAA, 2001: A UNIFIED EROSION FORMULATION
+C **  FOR FINE SEDIMENT, MARINE GEOLOGY, 179, 9-23.
+c
+C **  IOPT=4 & 5 BASED ON J. M. HAMRICK'S PARAMETERIZATION OF SEDFLUME
+C     TEST DATA
+C **
+
+      IF(IOPT.EQ.1)THEN
+        DENBULK=0.001*DENBULK
+        IF(DENBULK.LE.1.065)THEN
+          CSEDRESS=0.62
+        ELSE
+          TMP=0.198/(DENBULK-1.0023)
+          TMP=EXP(TMP)
+          CSEDRESS=6.4E-4*(10.**TMP)
+        ENDIF
+      ENDIF
+C
+      IF(IOPT.EQ.2)THEN
+        CSEDRESS=WRSPO*(1.+VDRO)/(1.+VDR)
+      ENDIF
+C
+      IF(IOPT.EQ.3)THEN
+        CSEDRESS=WRSPO*(1.+VDRO)/(1.+VDRC)
+      ENDIF
+C
+c      IF(IOPT.EQ.3)THEN
+c        CSEDRESS=WRSPO*(1.+VDRO)/(1.+VDR)
+c      ENDIF
+C
+      IF(IOPT.EQ.4)THEN
+	  TMPVAL=(1.+VDRO)/(1.+VDR)
+	  FACTOR=EXP(-TMPVAL)
+        CSEDRESS=FACTOR*WRSPO*(1.+VDRO)/(1.+VDR)
+      ENDIF
+C
+      IF(IOPT.EQ.5)THEN
+	  TMPVAL=(1.+VDRO)/(1.+VDRC)
+	  FACTOR=EXP(-TMPVAL)
+        CSEDRESS=FACTOR*WRSPO*(1.+VDRO)/(1.+VDRC)
+      ENDIF
+C
+      IF(IOPT.GE.99)THEN
+        CSEDRESS=WRSPO
+      ENDIF
+C
+      RETURN
+      END

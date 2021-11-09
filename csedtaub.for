@@ -1,0 +1,55 @@
+C
+C**********************************************************************C
+C**********************************************************************C
+C**********************************************************************C
+C
+      REAL FUNCTION CSEDTAUB(DENBULK,TDUM,V1,V2,V3,IOPT)
+C
+C **  THIS SUBROUTINE IS PART OF  EFDC-FULL VERSION 1.0a 
+C
+C **  LAST MODIFIED BY JOHN HAMRICK ON 1 NOVEMBER 2001
+C
+C----------------------------------------------------------------------C
+C
+C CHANGE RECORD
+C DATE MODIFIED     BY                 DATE APPROVED    BY
+C
+C----------------------------------------------------------------------C
+C
+      INCLUDE 'EFDC.PAR'
+C
+C **  CALCULATES CRITIAL STRESS FOR BULK OR MASS EROSION OF COHESIVE 
+C **  SEDIMENT AS A FUNCTION OF BED BULK DENSITY
+C
+C **  IOPT=1  BASED ON 
+C **
+C **  HWANG, K. N., AND A. J. MEHTA, 1989: FINE SEDIMENT DRODIBILITY
+C **  IN LAKE OKEECHOBEE FLORIDA. COASTAL AND OCEANOGRAPHIC ENGINEERING
+C **  DEPARTMENT, UNIVERSITY OF FLORIDA, GAINESVILLE, FL32661
+C
+C **  IOPT=2  BASED ON 
+C **
+C **  HWANG, K. N., AND A. J. MEHTA, 1989: FINE SEDIMENT DRODIBILITY
+C **  IN LAKE OKEECHOBEE FLORIDA. COASTAL AND OCEANOGRAPHIC ENGINEERING
+C **  DEPARTMENT, UNIVERSITY OF FLORIDA, GAINESVILLE, FL32661
+C
+      IF(IOPT.EQ.1)THEN
+        DENBULK=0.001*DENBULK
+        IF(DENBULK.LE.1.013)THEN
+          CSEDTAUB=0.0
+        ELSE
+          CSEDTAUB=0.001*(9.808*DENBULK-9.934)
+        ENDIF
+      ENDIF
+C
+      IF(IOPT.EQ.2)THEN
+        DENBULK=0.001*DENBULK
+        IF(DENBULK.LE.1.013)THEN
+          CSEDTAUB=0.0
+        ELSE
+          CSEDTAUB=0.001*(9.808*DENBULK-9.934)
+        ENDIF
+      ENDIF
+C
+      RETURN
+      END

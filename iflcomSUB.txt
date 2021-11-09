@@ -1,0 +1,4 @@
+ ifort /c /O3 /Qvms /QxW /Qvec_report2 wwqts.for
+ ifort /c /O3 /Qvms /QxW /Qvec_report2 wq3dinp.for
+ ifort /c /O3 /Qvms /QxW /Qvec_report2 DUMP.for
+ ifort *.obj 

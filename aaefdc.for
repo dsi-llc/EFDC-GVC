@@ -1,0 +1,2733 @@
+C**********************************************************************C
+C**********************************************************************C
+C**********************************************************************C
+C
+C **  FILE FOR EFDC-FULL VERSION 1.0a 
+C
+C **  LAST MODIFIED BY JOHN HAMRICK ON 1 NOVEMBER 2001
+C
+C     NON-CRAY VERSION 
+C
+C**********************************************************************C
+C
+      PROGRAM AAEFDC
+C
+C**********************************************************************C
+C
+C **  WELCOME TO THE ENVIRONMENTAL FLUID DYNAMICS COMPUTER CODE SERIES
+C **  DEVELOPED BY JOHN M. HAMRICK.  THE EFDC CODE WAS ORGINALLY
+C **  DEVELOPED AT VIRGINIA INSTITUTE OF MARINE SCIENCE
+C **  /SCHOOL OF MARINE SCIENCE, THE COLLEGE OF
+C **  WILLIAM AND MARY, GLOUCESTER POINT, VA 23062
+C
+C **  THIS SOURCE FILE IS A DIRECT RELEASE BY THE DEVELOPER
+C **  AND DIFFERS SIGNIFICANTLY FROM PRE 1 MARCH 96 VIMS RELEASES OF 
+C **  EFDC AND POST 1 MARCH 96 VIMS RELEASES OF HEM3D (THE NAMED 
+C **  CURRENTLY USED BY VIMS FOR THE VERSION OF EFDC EXISTING AT
+C **  THE TIME OF MY DEPARTURE) WITH RESPECT TO ERROR FIXES AND 
+C **  APPLICATION CAPABILITIES
+C
+C **  EFDC IS CURRENTLY MAINTAINED BY TETRA TECH, INC., WITH PRIMARY
+C **  SUPPORT FORM THE US ENVIRONMENTAL PROTECTION AGENCY
+C
+C **  ENVIRONMENTAL FLUID DYNAMICS CODE AND EFDC ARE
+C **  TRADEMARKS OF JOHN M. HAMRICK, PH.D., P.E.
+C
+C **  EFDC SOLVES THE 3D REYNOLDS AVERAGED NAVIER-STOKES
+C **  EQUATIONS (WITH HYDROSTATIC AND BOUSINESSQ APPROXIMATIONS) AND
+C **  TRANSPORT EQUATIONS FOR TURBULENT INTENSITY, TURBULENT 
+C **  INTENSITYXLENGHT SCALE, SALINITY (OR WATER VAPOR CONTENT), 
+C **  TEMPERATURE, AN INERT TRACER (CALLED DYE), A DYNAMICALLY ACTIVE
+C **  SUSPENDED SETTLING PARTICLE FIELD (CALLED SEDIMENT).  A FREE 
+C **  SURFACE OR RIGID LID IS PRESENT ON THE VERTICAL BOUNDARY Z=1
+C **  IN THE SIGMA STRETCHED VERTICAL COORDINATE.  THE HORIZONTAL 
+C **  COORDINATE SYSTEM IS CURVILINEAR AND ORTHOGONAL.  
+C 
+C **  THE NUMERICAL SOLUTION SCHEME IS ON A SPATIALLY STAGGERED MAC
+C **  OR C GRID AND THE TIME INTEGRATION USES A THREE TIME LEVEL
+C **  LEAPFROG INTEGRATION WITH PERIODIC TRAPEZOIDAL CORRECTIONS TO 
+C **  SUPPRESS THE COMPUTATIONAL MODE AND REDUCE NOISE. 
+C **  SPATIAL SOLUTION OF THE EXTERNAL MODE FOR THE FREE SURFACE 
+C **  ELEVATION OR KINEMATIC PRESSURE UNDER THE RIGID LID IS BY 
+C **  RED-BLACK SUCCESSIVE OVER RELAXATION (RB SOR) OR CONJUGATE
+C **  GRADIENT SOLUTION OF A PSEUDO-HEMHOLTZ EQUATION.  THE INTERNAL
+C **  SOLUTION IS IMPLICIT FOR THE VERTICAL SHEAR OR VELOCITY STRUCTURE.
+C **  A NUMBER OF OPTIONS ARE AVAILABLE FOR REPRESENTING THE ADVECTIVE
+C **  TRANSPORT TERMS IN THE MOMENTUM AND SCALAR TRANSPORT EQUATIONS.
+C
+C **  PRIMARY DOCUMENTATION INCLUDES:
+C
+C     HAMRICK, J. M., 1992A:  A THREE-DIMENSIONAL ENVIRONMENTAL
+C     FLUID DYNAMICS COMPUTER CODE: THEORETICAL AND COMPUTATIONAL
+C     ASPECTS. THE COLLEGE OF WILLIAM AND MARY, VIRGINIA INSTITUTE
+C     OF MARINE SCIENCE, SPECIAL REPORT 317, 63 PP.
+C  
+C     HAMRICK, J. M., 1996A:  USERS MANUAL FOR THE ENVIRONMENTAL
+C     FLUID DYNAMIC COMPUTER CODE. THE COLLEGE OF WILLIAM AND MARY,
+C     VIRGINIA INSTITUTE OF MARINE SCIENCE, SPECIAL REPORT 328, 224 PP.
+C
+C     PARK, K., A. Y. KUO, J. SHEN, AND J. M. HAMRICK, 1995: 
+C     A THREE-DIMENSIONAL HYDRODYNAMIC-EUTROPHICATION MODEL (HEM3D):
+C     DESCRIPTION OF WATER QUALITY AND SEDIMENT PROCESSES SUBMODELS.
+C     THE COLLEGE OF WILLIAM AND MARY, VIRGINIA INSTITUTE OF MARINE
+C     SCIENCE. SPECIAL REPORT 327, 113 PP.
+C
+C     TETRA TECH, INC., 1999B: THEORETICAL AND COMPUTATIONAL ASPECTS
+C     OF SEDIMENT AND CONTAMINANT TRANSPORT IN THE EFDC MODEL. 
+C     A REPORT TO THE U.S. ENVIRONMENTAL PROTECTION AGENCY, 
+C     TETRA TECH, INC., FAIRFAX, VA.
+C
+C **  ADDITIONAL REFERENCES TO MODEL APPLICATIONS ARE AVAILABLE
+C **  FROM THE DEVELOPER
+C
+C **  CHANGES MADE TO THIS CODE BY UNAUTHORIZED PERSONS WILL BE 
+C **  SUPPORTED ON A COST REIMBURSED BASIS ONLY.  SUPPORT IS AVAILABLE
+C **  FROM JOHN M. HAMRICK, 2520 WEST WHITTAKER CLOSE 
+C **  WILLIAMSBURG, VA, TEL. 804-258-0608, FAX 804-258-9698
+C **  EMAIL: HAM@VISI.NET
+C  
+C **  THE AUTHOR AND TETRA TECH, INC.  ASSUME NO LIABILITY FOR USE  
+C **  OF THIS CODE FOR ENVIRONMENTAL AND ENGINEERING STUDIES.
+C
+C **  THE FOLLOWING FILES ARE NECESSARY TO COMPILE THIS CODE:
+C 
+C **      EFDC.CMN    
+C **      EFDC.PAR
+C
+C **  THIS CODE HAS BEEN COMPLIED ON SUN SPARC, HP 9000/700, AND SGI
+C **  WORKSTATIONS, VAX VMS AND DEC ALPHA SYSTEMS,
+C **  CRAY Y/MP AND C90 SYSTEMS, MACINTOSH SYSTEMS USING LSI AND
+C **  ABSOFT FORTRAN, AND 486 AND PENTIUM PC'S USING LAHEY
+C **  PROFESSIONAL FORTRAN AND MICROSOFT POWERSTATION
+C **  LINES IN THE CODE BEGINNING WITH CDHP IMPLEMENT THE 
+C **  HP 9000/700 SERIES VECTOR LIBRARY AND MAY BE ACTIVATES BY 
+C **  REPLACING CDHP WITH 4 BLANK SPACES.  VAX EXTENSION TIMING 
+C **  UTILITIES USING THE CALL SECNDS MAY BE ACTIVATED BY UNCOMMENTING
+C **  ALL LINES CONTAINING SECNDS.
+C **  TO RUN ON CRAY SYSTEMS, REPLACE ACCESS='APPEND' WITH
+C **  POSITION='APPEND' IN APPROPRIATE FILE OPEN STATEMENTS
+C
+C **  THE FOLLOWING FILES MAY BE NECESSARY TO RUN THIS CODE:
+C
+C **      EFDC.INP
+C **      CELL.INP
+C **      CELLLT.INP
+C **      DXDY.INP
+C **      LXLY.INP
+C **      SALT.INP OR RESTART.INP OR RESTRAN.INP
+C **      TEMP.INP OR RESTART.INP OR RESTRAN.INP
+C **      ASER.INP
+C **      WSER.INP
+C **      QSER.INP
+C **      PSER.INP
+C **      SSER.INP
+C **      TSER.INP
+C **      DSER.INP
+C **      SDSER.INP
+C **      SNSER.INP
+C **      TXSER.INP
+C **      SFSER.INP
+C **      TXSER.INP
+C **      QCTL.INP
+C **      MASK.INP
+C **      SHOW.INP
+C **      VEGE.INP
+C **      MODDXDY.INP
+C **      MODCHAN.INP
+C **      GWATER.INP
+C 
+C**********************************************************************C
+C
+C **  THIS SUBROUTINE IS PART OF  EFDC-FULL VERSION 1.0a 
+C
+C **  LAST MODIFIED BY JOHN HAMRICK ON 1 NOVEMBER 2001
+C
+C----------------------------------------------------------------------C
+C
+C CHANGE RECORD
+C DATE MODIFIED     BY                 DATE APPROVED    BY
+C 02/15/2002        John Hamrick       02/15/2002       John Hamrick
+C  modified calculation of dxdj and dydi
+C 03/19/2002        John Hamrick       03/19/2002       John Hamrick
+C  eliminated code section which adjust restart in information for 
+C  wet and dry see 'fixed moved to restin1'
+C----------------------------------------------------------------------C
+C
+C**********************************************************************C
+C
+      INCLUDE 'EFDC.PAR'
+      INCLUDE 'EFDC.CMN'
+      CHARACTER*80 TITLE
+C
+      DIMENSION CPUTIME(2)
+C
+C**********************************************************************C
+C
+C **  SET IEEE EXCEPTION TRAPS (SUN SYSTEMS ONLY)
+C
+C     CALL SETUP_IEEE
+C       
+C**********************************************************************C
+C
+      TIMEEND=SECNDS(0.0)
+C
+      CALL WELCOME
+C       
+C**********************************************************************C
+C
+C **  OPEN OUTPUT FILES 
+C
+C----------------------------------------------------------------------C
+C
+      OPEN(7,FILE='EFDC.OUT',STATUS='UNKNOWN')
+      OPEN(8,FILE='EFDCLOG.OUT',STATUS='UNKNOWN')
+      OPEN(9,FILE='TIME.LOG',STATUS='UNKNOWN')
+      OPEN(10,FILE='DRYWET.LOG',STATUS='UNKNOWN')
+      OPEN(1,FILE='VSFP.OUT',STATUS='UNKNOWN')
+C
+      CLOSE(7,STATUS='DELETE')
+      CLOSE(8,STATUS='DELETE')
+      CLOSE(9,STATUS='DELETE')
+      CLOSE(10,STATUS='DELETE')
+      CLOSE(1,STATUS='DELETE')
+C
+      OPEN(7,FILE='EFDC.OUT',STATUS='UNKNOWN')
+      OPEN(8,FILE='EFDCLOG.OUT',STATUS='UNKNOWN')
+      OPEN(9,FILE='TIME.LOG',STATUS='UNKNOWN')
+C
+      OPEN(1,FILE='SEDIAG.OUT',STATUS='UNKNOWN')
+      CLOSE(1,STATUS='DELETE')
+C
+      OPEN(1,FILE='CFL.OUT',STATUS='UNKNOWN')
+      CLOSE(1,STATUS='DELETE')
+C
+      OPEN(1,FILE='NEGSEDSND.OUT',STATUS='UNKNOWN')
+      CLOSE(1,STATUS='DELETE')
+C
+C**********************************************************************C
+C
+C **  SET HARDWIRES TO BE REMOVED IN SUBSEQUENT VERSIONS
+C
+      ISHOUSATONIC=0   ! SET TO 1 TO ACTIVATE HOUSATONIC OPTIONS
+C
+C**********************************************************************C
+C
+C **  CALL INPUT SUBROUTINE
+C
+      CALL INPUT(TITLE)
+C
+C**********************************************************************C
+C
+C **  CALL SUBROUTINE TO ADJUST, CONVERT AND SMOOTH DEPTH FIELD
+C
+      IF(NSHMAX.GE.1) CALL DEPSMTH
+C
+C**********************************************************************C
+C
+C **  SET TIME RELATED PARAMETERS  
+C
+C **  THE PARAMETER NTC=NUMBER OF TIME CYCLES, CONTROLS
+C **  THE LENGTH OF RUN (NUMBER OF TIME STEPS)             
+C
+C----------------------------------------------------------------------C
+C
+      ISCRAY=0
+C
+      TCYCLE=0.0
+      TLRPD=0.0
+      THDMT=0.0
+      TVDIF=0.0
+      TCGRS=0.0
+      TCONG=0.0
+      TSADV=0.0
+      TRELAXV=0.0
+      TPUV=0.0
+      TCEXP=0.0
+      TAVB=0.0
+      TUVW=0.0
+      TQQQ=0.0
+      TQCLT=0.0
+      TWQADV=0.0
+      TWQDIF=0.0
+      TWQKIN=0.0
+      TWQSED=0.0
+      TSSED=0.0
+	TMISC=0.0
+	TTBXY=0.0
+	TOUTPUT=0.0
+      WTLRPD=0.0
+      WTHDMT=0.0
+      WTVDIF=0.0
+      WTCGRS=0.0
+      WTCONG=0.0
+      WTSADV=0.0
+      WTRELAXV=0.0
+      WTPUV=0.0
+      WTCEXP=0.0
+      WTAVB=0.0
+      WTUVW=0.0
+      WTQQQ=0.0
+      WTQCLT=0.0
+      WTWQADV=0.0
+      WTWQDIF=0.0
+      WTWQKIN=0.0
+      WTWQSED=0.0
+      WTSSED=0.0
+	WTMISC=0.0
+	WTTBXY=0.0
+	WTOUTPUT=0.0
+      CFMAX=CF
+      PI=3.1415926535898
+      NBAN=49
+      TPN=FLOAT(NTSPTC)
+      NTS=NTC*NTSPTC/NFLTMT 
+      NLTS=NTSPTC*NLTC
+      NTTS=NTSPTC*NTTC
+      SNLT=0.
+      NCTBC=1
+      NPRINT=1
+      NTSPP=NTCPP*NTSPTC/NFLTMT
+      NTSNB=NTCNB*NTSPTC
+      NTSVB=NTCVB*NTSPTC
+      ITRMAX=0
+      ITRMIN=1000
+      ERRMAX=1E-9
+      ERRMIN=1000.
+      NMMT=1
+      NBAL=1
+      NBALE=1
+      NBALO=1
+      NBUD=1
+      NHAR=1
+      NTSPTC2=2*NTSPTC/NFLTMT
+C     NDISP=NTS-NTSPTC+1
+      NDISP=NTS-NTSPTC+2
+      NSHOWR=0
+      NSHOWC=0
+C
+      DO NS=1,NASER
+        MATLAST(NS)=1
+      ENDDO
+C
+      DO NS=1,NWSER
+        MWTLAST(NS)=1
+      ENDDO
+C
+      DO NS=1,NPSER
+        MPTLAST(NS)=1
+      ENDDO
+C
+      DO NS=1,NQSER
+        MQTLAST(NS)=1
+      ENDDO
+C
+      DO NS=1,NQWRSR
+        MQWRTLST(NS)=1
+      ENDDO
+C
+      NTMP=4+NSED+NSND+NTOX
+      DO NC=1,NTMP
+      DO NN=1,NCSER(NC)
+        MCTLAST(NN,NC)=1
+      ENDDO
+      ENDDO
+C
+      MSFTLST=1
+C
+C**********************************************************************C
+C
+C **  SET CONTROLS FOR WRITING TO INSTANTANEOUS 2D SCALAR CONTOURING
+C **  AND 2D VELOCITY VECTOR PLOTTING FILES
+C
+C----------------------------------------------------------------------C
+C
+C **  SCALAR FIELD CONTOURING IN HORIZONTAL PLANES: SUBROUTINE SALPLTH
+C
+      DO N=1,7
+      IF(ISSPH(N).EQ.0)THEN
+        NCSPH(N)=0
+        JSSPH(N)=0
+      ENDIF
+      IF(ISSPH(N).EQ.2)THEN
+        NCSPH(N)=NTS-(NTSPTC-(NTSPTC/NPSPH(N)))/NFLTMT
+        JSSPH(N)=1
+      ENDIF
+      IF(ISSPH(N).EQ.1)THEN
+        NCSPH(N)=NTSPTC/NPSPH(N)/NFLTMT
+        JSSPH(N)=1
+      ENDIF
+      ENDDO
+C
+      IF(ISSPH(8).EQ.1)NCSPH(8)=NTSPTC/NPSPH(8)/NFLTMT
+C
+C----------------------------------------------------------------------C
+C
+C **  SEDIMENT BED PROPERTIES CONTOURING IN HORIZONTAL  
+C **  PLANES: SUBROUTINE SBEDPLT
+C
+      IF(ISBPH.EQ.0)THEN
+        NCBPH=0
+        JSBPH=0
+      ENDIF
+      IF(ISBPH.EQ.2)THEN
+        NCBPH=NTS-(NTSPTC-(NTSPTC/NPBPH))/NFLTMT
+        JSBPH=1
+      ENDIF
+      IF(ISBPH.EQ.1)THEN
+        NCBPH=NTSPTC/NPBPH/NFLTMT
+        JSBPH=1
+      ENDIF
+C
+C----------------------------------------------------------------------C
+C
+C **  FREE SURFACE ELEVATION OR PRESSURE CONTOURING IN HORIZONTAL  
+C **  PLANES: SUBROUTINE SURFPLT
+C
+      IF(ISPPH.EQ.0)THEN
+        NCPPH=0
+        JSPPH=0
+      ENDIF
+      IF(ISPPH.EQ.2)THEN
+        NCPPH=NTS-(NTSPTC-(NTSPTC/NPPPH))/NFLTMT
+        JSPPH=1
+      ENDIF
+      IF(ISPPH.EQ.1)THEN
+        NCPPH=NTSPTC/NPPPH/NFLTMT
+        JSPPH=1
+      ENDIF
+C
+C----------------------------------------------------------------------C
+C
+C **  VELOCITY VECTOR PLOTTING IN HORIZONTAL PLANES: SUBROUTINE VELPLTH
+C
+      IF(ISVPH.EQ.0)THEN
+        NCVPH=0
+        JSVPH=0
+      ENDIF
+      IF(ISVPH.EQ.2)THEN
+        NCVPH=NTS-(NTSPTC-(NTSPTC/NPVPH))/NFLTMT
+        JSVPH=1
+      ENDIF
+      IF(ISVPH.EQ.1)THEN
+        NCVPH=NTSPTC/NPVPH/NFLTMT
+        JSVPH=1
+      ENDIF
+C
+C----------------------------------------------------------------------C
+C
+C **  SCALAR FIELD CONTOURING IN VERTICAL PLANES: SUBROUTINE SALPLTV
+C
+      DO N=1,7
+      IF(ISSPV(N).EQ.0)THEN
+        NCSPV(N)=0
+        JSSPV(N)=0
+      ENDIF
+      IF(ISSPV(N).EQ.2)THEN
+        NCSPV(N)=NTS-(NTSPTC-(NTSPTC/NPSPV(N)))/NFLTMT
+        JSSPV(N)=1
+         DO IS=1,ISECSPV
+         CCTITLE(20+IS)=CCTITLE(10+IS)
+         CCTITLE(30+IS)=CCTITLE(10+IS)
+         CCTITLE(40+IS)=CCTITLE(10+IS)
+         CCTITLE(50+IS)=CCTITLE(10+IS)
+         ENDDO
+      ENDIF
+      IF(ISSPV(N).EQ.1)THEN
+        NCSPV(N)=NTSPTC/NPSPV(N)/NFLTMT
+        JSSPV(N)=1
+         DO IS=1,ISECSPV
+         CCTITLE(20+IS)=CCTITLE(10+IS)
+         CCTITLE(30+IS)=CCTITLE(10+IS)
+         CCTITLE(40+IS)=CCTITLE(10+IS)
+         CCTITLE(50+IS)=CCTITLE(10+IS)
+         ENDDO
+      ENDIF
+      ENDDO
+C
+C----------------------------------------------------------------------C
+C
+C **  NORMAL VELOCITY CONTOURING AND TANGENTIAL VELOCITY VECTOR 
+C **  PLOTTING IN VERTICAL PALNES: SUBROUTINE VELPLTV
+C
+      IF(ISVPV.EQ.0)THEN
+        NCVPV=0
+        JSVPV=0
+      ENDIF
+      IF(ISVPV.EQ.2)THEN
+        NCVPV=NTS-(NTSPTC-(NTSPTC/NPVPV))/NFLTMT
+        JSVPV=1
+         DO IS=1,ISECVPV
+         CVTITLE(20+IS)=CVTITLE(10+IS)
+         CVTITLE(30+IS)=CVTITLE(10+IS)
+         CVTITLE(40+IS)=CVTITLE(10+IS)
+         CVTITLE(50+IS)=CVTITLE(10+IS)
+         CVTITLE(60+IS)=CVTITLE(10+IS)
+         CVTITLE(70+IS)=CVTITLE(10+IS)
+         CVTITLE(80+IS)=CVTITLE(10+IS)
+         CVTITLE(90+IS)=CVTITLE(10+IS)
+         ENDDO
+      ENDIF
+      IF(ISVPV.EQ.1)THEN
+        NCVPV=NTSPTC/NPVPV/NFLTMT
+        JSVPV=1
+         DO IS=1,ISECVPV
+         CVTITLE(20+IS)=CVTITLE(10+IS)
+         CVTITLE(30+IS)=CVTITLE(10+IS)
+         CVTITLE(40+IS)=CVTITLE(10+IS)
+         CVTITLE(50+IS)=CVTITLE(10+IS)
+         CVTITLE(60+IS)=CVTITLE(10+IS)
+         CVTITLE(70+IS)=CVTITLE(10+IS)
+         CVTITLE(80+IS)=CVTITLE(10+IS)
+         CVTITLE(90+IS)=CVTITLE(10+IS)
+         ENDDO
+       ELSE
+        NCVPV=0
+        JSVPV=0
+      ENDIF
+C
+C----------------------------------------------------------------------C
+C
+C **  THREE-DIMENSIONAL HDF FORMAT GRAPHICS FILES: SUBROUTINE OUT3D
+C
+      IF(IS3DO.EQ.1)THEN
+       NC3DO=NTS-(NTSPTC-(NTSPTC/NP3DO))/NFLTMT
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  SET CONTROLS FOR WRITING TO FILTERED, AVERAGED OR RESIDUAL
+C **  2D SCALAR CONTOURING AND 2D VELOCITY VECTOR PLOTTING FILES
+C
+C----------------------------------------------------------------------C
+C
+C **  RESIDUAL SALINITY, TEMPERATURE, DYE AND SEDIMENT CONCENTRATION
+C **  CONTOURING IN HORIZONTAL: SUBROUTINE RSALPLTH
+C
+      DO N=1,7
+      IF(ISRSPH(N).GE.1) JSRSPH(N)=1
+      ENDDO
+C
+C----------------------------------------------------------------------C
+C
+C **  RESIDUAL VELOCITY VECTOR PLOTTING IN HORIZONTAL PLANES:
+C **  SUBROUTINE RVELPLTH
+C
+      IF(ISRVPH.GE.1) JSRVPH=1
+C
+C----------------------------------------------------------------------C
+C
+C **  RESIDUAL SURFACE ELEVATION PLOTTING IN HORIZONTAL PLANES:
+C **  SUBROUTINE RVELPLTH
+C
+      IF(ISRPPH.GE.1) JSRPPH=1
+C
+C----------------------------------------------------------------------C
+C
+C **  RESIDUAL SCALAR FIELD CONTOURING IN VERTICAL 
+C **  PLANES: SUBROUTINE RSALPLTV
+C
+      DO N=1,7
+      IF(ISRSPV(N).GE.1) JSRSPV(N)=1
+      ENDDO
+C
+C----------------------------------------------------------------------C
+C
+C **  RESIDUAL NORMAL AND TANGENTIAL VELOCITY CONTOURING AND AND 
+C **  TANGENTIAL VELOCITY VECTOR PLOTTING IN VERTICAL PLANES:
+C **  SUBROUTINE RVELPLTV
+C
+      IF(ISRVPV.GE.1) JSRVPV=1
+C
+C**********************************************************************C
+C
+C **  SET CONTROLS FOR WRITING TO DRIFTER, HARMONIC ANALYSIS,
+C **  RESIDUAL TRANSPORT, AND BLANCE OUTPUT FILES 
+C
+C----------------------------------------------------------------------C
+C
+      JSPD=1
+      NCPD=1
+C 
+      JSLSHA=1
+      IF(ISLSHA.EQ.1)THEN
+       LSLSHA=0
+       NCLSHA=NTS-NTCLSHA*NTSPTC
+      ENDIF
+C
+      IF(ISRESTR.EQ.1) JSRESTR=1
+      JSWASP=0
+      IF(ISWASP.GE.1) JSWASP=1
+C
+      IF(ISBAL.GE.1)THEN 
+        JSBAL=1
+        JSBALO=1
+        JSBALE=1
+      ENDIF
+      JSSBAL=1 
+C
+C**********************************************************************C
+C
+C **  SET CONTROL FOR CALCULATION OF LAGRANGIAN MEAN VELOCITIY FIELDS
+C **  BY PARTICLE TRACKING
+C
+C----------------------------------------------------------------------C
+C
+      IF(ISLRPD.GE.1)THEN
+        NLRPDRT(1)=NTS-NTSPTC-(NTSPTC-(NTSPTC/MLRPDRT))/NFLTMT
+        DO M=2,MLRPDRT
+        NLRPDRT(M)=NLRPDRT(M-1)+(NTSPTC/MLRPDRT)
+        ENDDO
+        JSLRPD=1
+       ELSE
+        NLRPDRT(1)=NTS+2
+        JSLRPD=0
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  SET SOME CONSTANTS
+C
+C----------------------------------------------------------------------C
+C
+      JSTBXY=0
+C
+      CTURB2=CTURB**0.667
+      CTURB3=CTURB**0.333
+C
+      KS=KC-1
+      IF(KS.EQ.0) KS=1
+      DZI=FLOAT(KC)
+      DZ=1./DZI
+      DZS=DZ*DZ
+C
+      DT=TIDALP*FLOAT(NFLTMT)/FLOAT(NTSPTC)
+      DTI=1./DT
+      DT2=2.*DT
+      DTMIN=DT
+C
+      AVCON1=2.*(1.-AVCON)*DZI*AVO
+      G=9.81
+      GPO=G*BSC
+      GI=1./G
+      GID2=.5*GI
+      PI=3.1415926535898
+      PI2=2.*PI
+C
+      TCVP=0.0625*TIDALP/PI
+C
+C**********************************************************************C
+C
+C **  SET CONSTANTS FOR M2 TIDAL CYCLE HARMONIC ANALYSIS
+C
+C----------------------------------------------------------------------C
+C
+      IF(ISHTA.GT.0)THEN
+C
+      AC=0.
+      AS=0.
+      ACS=0.
+	TSHIFT=(TBEGIN*TCON/DT)+FLOAT(NTC-2)*NTSPTC
+C
+      DO N=1,NTSPTC
+      TNT=FLOAT(N)+TSHIFT
+      NP=NTSPTC+N
+      WC(N)=COS(2.*PI*TNT/TPN)
+      WS(N)=SIN(2.*PI*TNT/TPN)
+      WC(NP)=WC(N)
+      WS(NP)=WS(N)
+      AC=AC + 2.*WC(N)*WC(N)
+      AS=AS + 2.*WS(N)*WS(N)
+C     ACS=ACS +2.*WC(N)*WS(N)
+      ACS=0.
+      WC2(N)=COS(4.*PI*TNT/TPN)
+      WS2(N)=SIN(4.*PI*TNT/TPN)
+      WC2(NP)=WC2(N)
+      WS2(NP)=WC2(N)
+      AC2=AC2 + 2.*WC2(N)*WC2(N)
+      AS2=AS2 + 2.*WS2(N)*WS2(N)
+C     ACS2=ACS2 +2.*WC2(N)*WS2(N)
+      ACS2=0.
+      ENDDO
+C
+      DET=AC*AS-ACS*ACS
+      AS=AS/DET
+      AC=AC/DET
+      ACS=ACS/DET
+      DET=AC2*AS2-ACS2*ACS2
+      AS2=AS2/DET
+      AC2=AC2/DET
+      ACS2=ACS2/DET
+C
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  SET WEIGHTS FOR SALINITY AND TEMPERATURE BOUNDARY INTERPOLATION
+C
+C----------------------------------------------------------------------C
+C
+      IF(KC.GT.1)THEN
+      DO K=1,KC 
+      WTCI(K,1)=FLOAT(K-KC)/FLOAT(1-KC)
+      WTCI(K,2)=FLOAT(K-1)/FLOAT(KC-1)
+      ENDDO
+      ELSE
+      WTCI(1,1)=0.5
+      WTCI(1,2)=0.5
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  INITIALIZE ARRAYS  
+C
+      CALL AINIT
+C
+C**********************************************************************C
+C
+C **  READ IN XLON AND YLAT OR UTME AND UTMN OF CELL CENTERS OF 
+C **  CURVILINEAR PORTION OF THE  GRID
+C
+      IF(ISCLO.EQ.1)THEN
+C
+      OPEN(1,FILE='LXLY.INP',STATUS='UNKNOWN')
+C
+      DO NS=1,4
+      READ(1,1111)
+      ENDDO
+ 1111 FORMAT(80X)
+C
+      IF(ISCORV.EQ.1)THEN
+       DO LL=1,LVC
+       READ(1,*,ERR=3000)I,J,XLNUTME,YLTUTMN,CCUE,CCVE,CCUN,CCVN,TMPVAL,
+     &                   TMPCOR
+       L=LIJ(I,J)
+       DLON(L)=XLNUTME
+       DLAT(L)=YLTUTMN
+       ANG1=ATAN2(CCUN,CCUE)
+       ANG2=ATAN2(-CCVE,CCVN)
+       ANG=0.5*(ANG1+ANG2)
+       CUE(L)=COS(ANG)
+       CVE(L)=-SIN(ANG)
+       CUN(L)=SIN(ANG)
+       CVN(L)=COS(ANG)
+       WINDSTKA(L)=TMPVAL
+       FCORC(L)=TMPCOR
+       DETTMP=1./( CUE(L)*CVN(L)-CUN(L)*CVE(L) )
+       IF(DETTMP.EQ.0.0)THEN
+         WRITE(6,6262)
+         WRITE(6,6263)IL(L),JL(L)
+         STOP
+       ENDIF
+       ENDDO
+      ELSE
+       DO LL=1,LVC
+       READ(1,*,ERR=3000)I,J,XLNUTME,YLTUTMN,CCUE,CCVE,CCUN,CCVN,TMPVAL
+       L=LIJ(I,J)
+       DLON(L)=XLNUTME
+       DLAT(L)=YLTUTMN
+       ANG1=ATAN2(CCUN,CCUE)
+       ANG2=ATAN2(-CCVE,CCVN)
+       ANG=0.5*(ANG1+ANG2)
+       CUE(L)=COS(ANG)
+       CVE(L)=-SIN(ANG)
+       CUN(L)=SIN(ANG)
+       CVN(L)=COS(ANG)
+       WINDSTKA(L)=TMPVAL
+       FCORC(L)=CF
+       DETTMP=1./( CUE(L)*CVN(L)-CUN(L)*CVE(L) )
+       IF(DETTMP.EQ.0.0)THEN
+         WRITE(6,6262)
+         WRITE(6,6263)IL(L),JL(L)
+         STOP
+       ENDIF
+       ENDDO
+      ENDIF
+C
+ 6262 FORMAT('  SINGULAR INVERSE TRANSFORM FROM E,N TO CURV X,Y')
+ 6263 FORMAT('  I,J =',2I10/)
+C
+      CLOSE(1)
+C
+      ENDIF
+C
+      FCORC(1)=FCORC(2)
+      FCORC(LC)=FCORC(LA)
+C
+      GOTO 3002
+ 3000 WRITE(6,3001)
+ 3001 FORMAT('  READ ERROR FOR FILE LXLY.INP ')
+      STOP
+ 3002 CONTINUE
+C
+C     COSTMP=COSD(15.)
+C     SINTMP=SIND(15.)
+C     SINNEG=-SINTMP
+      OPEN(1,FILE='NEWLXLY.INP',STATUS='UNKNOWN')
+      IF(ISCORV.EQ.1)THEN
+       DO L=2,LA
+        WRITE(1,1112)IL(L),JL(L),DLON(L),DLAT(L),CUE(L),CVE(L),CUN(L),
+     &             CVN(L),WINDSTKA(L),FCORC(L)
+       ENDDO
+      ELSE
+       DO L=2,LA
+        WRITE(1,1112)IL(L),JL(L),DLON(L),DLAT(L),CUE(L),CVE(L),CUN(L),
+     &             CVN(L),WINDSTKA(L)
+       ENDDO
+      ENDIF
+      CLOSE(1)
+C
+      ZERO=0.
+      OPEN(1,FILE='LIJMAP.OUT',STATUS='UNKNOWN')
+      DO L=2,LA
+      WRITE(1,1113)L,IL(L),JL(L),ZERO
+      ENDDO
+      CLOSE(1)
+C
+ 1112 FORMAT (2I5,2F12.4,6F12.7)
+ 1113 FORMAT (3I5,F10.2)
+C
+C**********************************************************************C
+C
+C **  SET CORNER CELL STRESS CORRECTION
+C
+      DO L=2,LA
+	  FSCORTBCV(L)=0.0
+	ENDDO
+C
+      IF(ISCORTBC.GE.1)THEN
+      DO L=2,LA
+	  FSCORTBCV(L)=FSCORTBC
+	ENDDO
+	ENDIF
+C
+      IF(ISCORTBC.EQ.2)THEN
+C
+      OPEN(1,FILE='CORNERC.INP')
+C
+      DO NS=1,4
+      READ(1,1111)
+      ENDDO
+C
+      READ(1,*)NTMP
+	DO NT=1,NTMP
+	  READ(1,*)I,J,TMPVAL
+	  L=LIJ(I,J)
+	  FSCORTBCV(L)=TMPVAL
+	ENDDO
+C
+      CLOSE(1)
+C
+      ENDIF
+C            
+C**********************************************************************C
+C
+C **  READ SPATIAL AVERAGING MAP FOR FOOD CHAIN MODEL OUTPUT
+C
+      IF(ISFDCH.EQ.1)THEN 
+C
+	DO L=1,LC
+	  MFDCHZ(L)=0
+	ENDDO
+C
+      OPEN(1,FILE='FOODCHAIN.INP')
+C
+      DO NS=1,4
+      READ(1,1111)
+      ENDDO
+C
+      READ(1,*)NFDCHIJ
+	DO LT=1,NFDCHIJ
+	  READ(1,*)I,J,ITMPVAL
+	  L=LIJ(I,J)
+	  MFDCHZ(L)=ITMPVAL
+	ENDDO
+C
+      CLOSE(1)
+C
+      ENDIF
+C               
+C**********************************************************************C
+C
+C **  READ IN COUNTER CLOCKWISE ANGLE FROM EAST SPECIFYING 
+C **  PRINCIPAL FLOOD FLOW DIRECTION
+C
+      IF(ISTRAN(4).GE.1.AND.ISSFLFE.GE.1)THEN
+C
+      OPEN(1,FILE='FLDANG.INP',STATUS='UNKNOWN')
+C
+      DO LL=2,LA
+      READ(1,*,ERR=3130)I,J,ANGTMP1,ANGTMP2
+      L=LIJ(I,J)
+      ACCWFLD(L,1)=0.0174533*ANGTMP1
+      ACCWFLD(L,2)=0.0174533*ANGTMP2
+      ENDDO
+C
+      CLOSE(1)
+C
+      ENDIF
+C
+      GOTO 3132
+ 3130 WRITE(6,3131)
+ 3131 FORMAT('  READ ERROR FOR FILE FLDANG.INP ')
+      STOP
+ 3132 CONTINUE
+C
+C**********************************************************************C
+C
+C **  SET BOUNDARY CONDITION SWITCHES
+C
+      CALL SETBCS
+C
+C**********************************************************************C
+C
+C **  SET VERTICAL GRID DEPENDENT ARRAYS AND HARDWIRE DIMENSIONLESS 
+C **  MIXING LENGTH 
+C      
+C----------------------------------------------------------------------C
+C
+      DO K=1,KC
+C     DZC(K)=DZ
+      DZIC(K)=1./DZC(K)
+      ENDDO
+C
+      DZIG(0)=0.
+      DZIG(KC)=0.
+      DO K=1,KS
+      DZG(K)=0.5*(DZC(K)+DZC(K+1))
+      DZIG(K)=1./DZG(K)
+      DZIGSD4(K)=0.25*DZIG(K)*DZIG(K)
+      CDZU(K)=-DZC(K)/(DZC(K)+DZC(K+1))
+      CDZL(K)=-DZC(K+1)/(DZC(K)+DZC(K+1))
+      CDZF(K)=DZC(K)*DZC(K+1)/(DZC(K)+DZC(K+1))
+      CDZM(K)=0.5*DZC(K)*DZC(K+1)
+      ENDDO
+C
+      CDZR(1)=DZC(1)-1.
+      CDZD(1)=DZC(1)
+      DO K=2,KS
+      CDZR(K)=DZC(K)+CDZR(K-1)
+      CDZD(K)=DZC(K)+CDZD(K-1)
+      ENDDO
+C
+      DO K=1,KS
+      CDZR(K)=CDZR(K)*DZG(K)*CDZL(1)
+      ENDDO
+C
+      CDZKMK(1)=0.
+      DO K=2,KC
+      CDZKMK(K)=DZIG(K-1)*DZIC(K)
+      ENDDO
+C
+      DO K=1,KS
+      CDZKK(K)=DZIC(K)*DZIG(K)
+      CDZKKP(K)=DZIG(K)*DZIC(K+1)
+      ENDDO
+      CDZKK(KC)=0.
+C
+      Z(0)=0.
+      IF(KC.GT.1)THEN
+      DO K=1,KS
+      Z(K)=Z(K-1)+DZC(K)
+      ZZ(K)=Z(K)-0.5*DZC(K)
+	IF(IFPROX.EQ.0)FPROX(K)=0.
+      IF(IFPROX.EQ.1)FPROX(K)=1./(VKC*Z(K)*(1.-Z(K)))**2
+      IF(IFPROX.EQ.2)FPROX(K)=(1./(VKC*Z(K))**2)
+     &          +CTE5*(1./(VKC*(1.-Z(K)))**2)/(CTE4+0.00001)
+      ENDDO
+      ENDIF
+C
+      Z(KC)=Z(KS)+DZC(KC)
+      ZZ(KC)=Z(KC)-0.5*DZC(KC)
+C
+      IF(ISRESTI.EQ.0)THEN
+       DO K=0,KC
+       DO L=1,LC
+       DML(L,K)=VKC*Z(K)*(1.-Z(K))
+       ENDDO
+       ENDDO
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  READ GVC SPECIFIC FILES AND SET REAL AND LOGICAL MASK FOR GVC
+C
+      IF(IGRIDV.EQ.1) CALL SETGVC
+C
+C**********************************************************************C
+C
+C **  CALCUATE CURVATURE METRICS (NEW ADDITION)
+C
+C----------------------------------------------------------------------C
+C
+      DO L=1,LC
+       DYDI(L)=0.
+       DXDJ(L)=0.
+      ENDDO
+C
+C ** DYDI
+C
+c      DO L=2,LA
+c      IF(SUBO(L+1).GT.0.5) DYDI(L)=DYU(L+1)-DYU(L)
+c      IF(SUBO(L+1).LT.0.5)THEN
+c        IF(SUBO(L).LT.0.5) DYDI(L)=0.0
+c        IF(SUBO(L).GT.0.5)THEN
+c          DDYDDDX=2.*(DYP(L)-DYP(L-1))/(DXP(L)+DXP(L-1))
+c          DYUP1=DYP(L)+0.5*DDYDDDX*DXP(L)
+c          DYDI(L)=DYUP1-DYU(L)
+c        ENDIF
+c      ENDIF
+c      ENDDO
+C
+      DO L=2,LA
+	  I=IL(L)
+	  J=JL(L)
+	  IF(IJCT(I-1,J).GE.1.AND.IJCT(I-1,J).LE.5)THEN
+	    IF(IJCT(I+1,J).GE.1.AND.IJCT(I+1,J).LE.5)THEN
+	      DYDI(L)=DYU(L+1)-DYU(L)
+	    ELSE
+            DDYDDDX=2.*(DYP(L)-DYP(L-1))/(DXP(L)+DXP(L-1))
+            DYUP1=DYP(L)+0.5*DDYDDDX*DXP(L)
+            DYDI(L)=DYUP1-DYU(L)
+	    END IF
+	  ELSE
+	    IF(IJCT(I+1,J).GE.1.AND.IJCT(I+1,J).LE.5)THEN
+            DDYDDDX=2.*(DYP(L+1)-DYP(L))/(DXP(L+1)+DXP(L))
+            DYUM1=DYP(L)-0.5*DDYDDDX*DXP(L)
+            DYDI(L)=DYU(L)-DYUM1
+	    ELSE
+	      DYDI(L)=0.0
+	    END IF
+	  END IF
+      ENDDO
+C
+C ** DXDJ
+C
+c      DO L=2,LA
+c      LN=LNC(L)
+c      LS=LSC(L)
+c      IF(SVBO(LN).GT.0.5) DXDJ(L)=DXV(LN)-DXV(L)
+c      IF(SVBO(LN).LT.0.5)THEN
+c        IF(SVBO(L).LT.0.5) DXDJ(L)=0.0
+c        IF(SVBO(L).GT.0.5)THEN
+c          DDXDDDY=2.*(DXP(L)-DXP(LS))/(DYP(L)+DYP(LS))
+c          DXVLN=DXP(L)+0.5*DDXDDDY*DYP(L)
+c          DXDJ(L)=DXVLN-DXV(L)
+c        ENDIF
+c      ENDIF
+c      ENDDO
+C
+      DO L=2,LA
+	  LN=LNC(L)
+	  LS=LSC(L)
+	  I=IL(L)
+	  J=JL(L)
+	  IF(IJCT(I,J-1).GE.1.AND.IJCT(I,J-1).LE.5)THEN
+	    IF(IJCT(I,J+1).GE.1.AND.IJCT(I,J+1).LE.5)THEN
+	      DXDJ(L)=DXV(LN)-DXV(L)
+	    ELSE
+            DDXDDDY=2.*(DXP(L)-DXP(LS))/(DYP(L)+DYP(LS))
+            DXVLN=DXP(L)+0.5*DDXDDDY*DYP(L)
+            DXDJ(L)=DXVLN-DXV(L)
+	    END IF
+	  ELSE
+	    IF(IJCT(I,J+1).GE.1.AND.IJCT(I,J+1).LE.5)THEN
+            DDXDDDY=2.*(DXP(LN)-DXP(L))/(DYP(LN)+DYP(L))
+            DXVLS=DXP(L)-0.5*DDXDDDY*DYP(L)
+            DXDJ(L)=DXV(L)-DXVLS
+	    ELSE
+	      DXDJ(L)=0.0
+	    END IF
+	  END IF
+      ENDDO
+C
+C**********************************************************************C
+C
+C **  READ RESTART CONDITIONS OR INITIALIZE SCALAR FIELDS
+C
+C     ISRESTI.EQ.10 READS AND OLD RESTART FILE GENERATED BY 
+C     PRE SEPTEMBER 8, 1992 VERSIONS OF EFDC.FOR
+C
+C----------------------------------------------------------------------C
+C
+      IF(ISLTMT.EQ.0)THEN
+      IF(ISRESTI.GE.1)THEN
+       IF(ISRESTI.EQ.1) CALL RESTIN1
+       IF(ISRESTI.EQ.2) CALL RESTIN2
+       IF(ISRESTI.EQ.10) CALL RESTIN10
+      ENDIF
+      IF(ISRESTI.EQ.-1) CALL RESTIN1
+      ENDIF
+C
+      IF(ISRESTI.GE.1)THEN
+	 DO K=1,KC
+	 DO L=2,LA
+	 FLOCDIA(L,K)=0.001
+	 SEDFLOCDIA(L,K)=FLOCDIA(L,K)*SED(L,K,1)
+	 ENDDO
+	 ENDDO
+	ENDIF
+C----------------------------------------------------------------------C
+C
+C **  INTIALIZE SALINITY FIELD IF NOT READ IN FROM RESTART FILE
+C
+      IF(ISTRAN(1).GE.1)THEN
+	IFLAG=0
+      IF(ISRESTI.EQ.0)IFLAG=1
+	IF(ISRESTI.EQ.1.AND.ISCI(1).EQ.0)IFLAG=1
+      IF(IFLAG.EQ.1)THEN
+      IF(ISLTMT.EQ.0.AND.ISTOPT(1).GE.1)THEN
+C
+       NREST=0
+C
+       DO K=1,KC
+       DO L=2,LA
+       SAL(L,K)=SALINIT(L,K)
+       SAL1(L,K)=SALINIT(L,K)
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBS
+       L=LCBS(LL)
+       CLOS(LL,K,1)=SALINIT(L,K)
+       NLOS(LL,K,1)=0
+       IF(NCSERS(LL,1).EQ.0)THEN
+        SAL(L,K)=WTCI(K,1)*CBS(LL,1,1)+WTCI(K,2)*CBS(LL,2,1)
+        SAL1(L,K)=SAL(L,K)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBW
+       L=LCBW(LL)      
+       CLOW(LL,K,1)=SALINIT(L,K)
+       NLOW(LL,K,1)=0
+       IF(NCSERW(LL,1).EQ.0)THEN
+        SAL(L,K)=WTCI(K,1)*CBW(LL,1,1)+WTCI(K,2)*CBW(LL,2,1)
+        SAL1(L,K)=SAL(L,K)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBE
+       L=LCBE(LL)
+       CLOE(LL,K,1)=SALINIT(L,K)
+       NLOE(LL,K,1)=0
+       IF(NCSERE(LL,1).EQ.0)THEN
+        SAL(L,K)=WTCI(K,1)*CBE(LL,1,1)+WTCI(K,2)*CBE(LL,2,1)
+        SAL1(L,K)=SAL(L,K)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBN
+       L=LCBN(LL)
+       CLON(LL,K,1)=SALINIT(L,K)
+       NLON(LL,K,1)=0
+       IF(NCSERN(LL,1).EQ.0)THEN
+        SAL(L,K)=WTCI(K,1)*CBN(LL,1,1)+WTCI(K,2)*CBN(LL,2,1)
+        SAL1(L,K)=SAL(L,K)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       OPEN(1,FILE='NEWSALT.INP',STATUS='UNKNOWN')
+       IONE=1
+       WRITE(1,9101)IONE
+       DO L=2,LC-1
+       WRITE(1,9102)L,IL(L),JL(L),(SAL(L,K),K=1,KC)
+       ENDDO
+       CLOSE(1)
+C
+      ENDIF
+      ENDIF
+	ENDIF
+C
+ 9101 FORMAT(I5)
+ 9102 FORMAT(3I5,28F8.2)
+C
+C **  INTIALIZE TEMP FIELD IF NOT READ IN FROM RESTART FILE
+C
+      IF(ISTRAN(2).GE.1)THEN
+	IFLAG=0
+      IF(ISRESTI.EQ.0)IFLAG=1
+	IF(ISRESTI.EQ.1.AND.ISCI(2).EQ.0)IFLAG=1
+      IF(IFLAG.EQ.1)THEN
+      IF(ISLTMT.EQ.0.AND.ISTOPT(2).EQ.1)THEN
+C
+       NREST=0
+C
+       DO K=1,KC
+       DO L=2,LA
+       TEM(L,K)=TEMINIT(L,K)
+       TEM1(L,K)=TEM(L,K)
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBS
+       L=LCBS(LL)
+       CLOS(LL,K,2)=TEMINIT(L,K)
+       NLOS(LL,K,2)=0
+       IF(NCSERS(LL,2).EQ.0)THEN
+        TEM(L,K)=WTCI(K,1)*CBS(LL,1,2)+WTCI(K,2)*CBS(LL,2,2)
+        TEM1(L,K)=TEM(L,K)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBW
+       L=LCBW(LL)
+       CLOW(LL,K,2)=TEMINIT(L,K)
+       NLOW(LL,K,2)=0
+       IF(NCSERW(LL,2).EQ.0)THEN
+        TEM(L,K)=WTCI(K,1)*CBW(LL,1,2)+WTCI(K,2)*CBW(LL,2,2)
+        TEM1(L,K)=TEM(L,K)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBE
+       L=LCBE(LL)
+       CLOE(LL,K,2)=TEMINIT(L,K)
+       NLOE(LL,K,2)=0
+       IF(NCSERE(LL,2).EQ.0)THEN
+        TEM(L,K)=WTCI(K,1)*CBE(LL,1,2)+WTCI(K,2)*CBE(LL,2,2)
+        TEM1(L,K)=TEM(L,K)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBN
+       L=LCBN(LL)
+       CLON(LL,K,2)=TEMINIT(L,K)
+       NLON(LL,K,2)=0
+       IF(NCSERN(LL,2).EQ.0)THEN
+        TEM(L,K)=WTCI(K,1)*CBN(LL,1,2)+WTCI(K,2)*CBN(LL,2,2)
+        TEM1(L,K)=TEM(L,K)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+      ENDIF
+      ENDIF
+	ENDIF
+C
+C **  INTIALIZE TEMPERATURE BC IF NOT READ IN FROM RESTART FILE
+C     AND CONSTANT INTIAL CONDITION IS USED
+C
+      IF(ISTRAN(2).GE.1)THEN
+	IFLAG=0
+      IF(ISRESTI.EQ.0)IFLAG=1
+	IF(ISRESTI.EQ.1.AND.ISCI(2).EQ.0)IFLAG=1
+      IF(IFLAG.EQ.1)THEN
+      IF(ISLTMT.EQ.0.AND.ISTOPT(2).GE.2)THEN
+       M=2
+C
+       DO K=1,KC
+       DO LL=1,NCBS
+       L=LCBS(LL)
+       NSID=NCSERS(LL,M)
+       CBT=WTCI(K,1)*CBS(LL,1,M)+WTCI(K,2)*CBS(LL,2,M)+CSERT(K,NSID,M)
+       CLOS(LL,K,M)=TEMO
+       NLOS(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBW
+       L=LCBW(LL)      
+       NSID=NCSERW(LL,M)
+       CBT=WTCI(K,1)*CBW(LL,1,M)+WTCI(K,2)*CBW(LL,2,M)+CSERT(K,NSID,M)
+       CLOW(LL,K,M)=TEMO
+       NLOW(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBE
+       L=LCBE(LL)
+       NSID=NCSERE(LL,M)
+       CBT=WTCI(K,1)*CBE(LL,1,M)+WTCI(K,2)*CBE(LL,2,M)+CSERT(K,NSID,M)
+       CLOE(LL,K,M)=TEMO
+       NLOE(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBN
+       L=LCBN(LL)
+       NSID=NCSERN(LL,M)
+       CBT=WTCI(K,1)*CBN(LL,1,M)+WTCI(K,2)*CBN(LL,2,M)+CSERT(K,NSID,M)
+       CLON(LL,K,M)=TEMO
+       NLON(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+      ENDIF
+      ENDIF
+	ENDIF
+C
+C **  INTIALIZE DYE FIELD IF NOT READ IN FROM RESTART FILE
+C
+      IF(ISTRAN(3).GE.1)THEN
+	IFLAG=0
+      IF(ISRESTI.EQ.0)IFLAG=1
+	IF(ISRESTI.EQ.1.AND.ISCI(3).EQ.0)IFLAG=1
+      IF(IFLAG.EQ.1)THEN
+      IF(ISLTMT.EQ.0.AND.ISTOPT(3).GE.1)THEN
+C
+       NREST=0
+C
+       DO K=1,KC
+       DO L=2,LA
+       DYE(L,K)=DYEINIT(L,K)
+       DYE1(L,K)=DYE(L,K)
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBS
+       L=LCBS(LL)
+       CLOS(LL,K,3)=DYEINIT(L,K)
+       NLOS(LL,K,3)=0
+       IF(NCSERS(LL,3).EQ.0)THEN
+        DYE(L,K)=WTCI(K,1)*CBS(LL,1,3)+WTCI(K,2)*CBS(LL,2,3)
+        DYE1(L,K)=DYE(L,K)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBW
+       L=LCBW(LL)
+       CLOW(LL,K,3)=DYEINIT(L,K)
+       NLOW(LL,K,3)=0
+       IF(NCSERW(LL,3).EQ.0)THEN
+        DYE(L,K)=WTCI(K,1)*CBW(LL,1,3)+WTCI(K,2)*CBW(LL,2,3)
+        DYE1(L,K)=DYE(L,K)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBE
+       L=LCBE(LL)
+       CLOE(LL,K,3)=DYEINIT(L,K)
+       NLOE(LL,K,3)=0
+       IF(NCSERE(LL,3).EQ.0)THEN
+        DYE(L,K)=WTCI(K,1)*CBE(LL,1,3)+WTCI(K,2)*CBE(LL,2,3)
+        DYE1(L,K)=DYE(L,K)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBN
+       L=LCBN(LL)
+       CLON(LL,K,3)=DYEINIT(L,K)
+       NLON(LL,K,3)=0
+       IF(NCSERN(LL,3).EQ.0)THEN
+        DYE(L,K)=WTCI(K,1)*CBN(LL,1,3)+WTCI(K,2)*CBN(LL,2,3)
+        DYE1(L,K)=DYE(L,K)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+      ENDIF
+      ENDIF
+	ENDIF
+C
+C **  INTIALIZE DYE BC IF NOT READ IN FROM RESTART FILE
+C **  AND CONSTANT INITIAL CONDITIONS ARE USED
+C
+      IF(ISTRAN(3).GE.1)THEN
+	IFLAG=0
+      IF(ISRESTI.EQ.0)IFLAG=1
+	IF(ISRESTI.EQ.1.AND.ISCI(3).EQ.0)IFLAG=1
+      IF(IFLAG.EQ.1)THEN
+      IF(ISLTMT.EQ.0.AND.ISTOPT(3).EQ.0)THEN
+C
+       M=3
+C
+       DO K=1,KC
+       DO LL=1,NCBS
+       L=LCBS(LL)
+       NSID=NCSERS(LL,M)
+       CBT=WTCI(K,1)*CBS(LL,1,M)+WTCI(K,2)*CBS(LL,2,M)+CSERT(K,NSID,M)
+       CLOS(LL,K,M)=0.
+       NLOS(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBW
+       L=LCBW(LL)      
+       NSID=NCSERW(LL,M)
+       CBT=WTCI(K,1)*CBW(LL,1,M)+WTCI(K,2)*CBW(LL,2,M)+CSERT(K,NSID,M)
+       CLOW(LL,K,M)=0.
+       NLOW(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBE
+       L=LCBE(LL)
+       NSID=NCSERE(LL,M)
+       CBT=WTCI(K,1)*CBE(LL,1,M)+WTCI(K,2)*CBE(LL,2,M)+CSERT(K,NSID,M)
+       CLOE(LL,K,M)=0.
+       NLOE(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBN
+       L=LCBN(LL)
+       NSID=NCSERN(LL,M)
+       CBT=WTCI(K,1)*CBN(LL,1,M)+WTCI(K,2)*CBN(LL,2,M)+CSERT(K,NSID,M)
+       CLON(LL,K,M)=0.
+       NLON(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+      ENDIF
+      ENDIF
+	ENDIF
+C
+C **  INTIALIZE TOX AND BC IF NOT READ IN FROM RESTART FILE
+C **  AND VARIABLE INITIAL CONDITIONS ARE USED
+C
+      IISTMP=1
+      IF(ISRESTI.EQ.0) IISTMP=0
+      IF(ISRESTI.GE.1.AND.ISCI(5).EQ.0) IISTMP=0
+C
+      IF(IISTMP.EQ.0.AND.ISTRAN(5).EQ.1)THEN
+       DO NT=1,NTOX
+       IF(ITXINT(NT).EQ.1.OR.ITXINT(NT).EQ.3)THEN
+       M=4+NT
+
+       DO K=1,KC
+       DO L=2,LA
+       TOX(L,K,NT)=TOXINIT(L,K,NT)
+       TOX1(L,K,NT)=TOX(L,K,NT)
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBS
+       L=LCBS(LL)
+       CLOS(LL,K,M)=TOXINIT(L,K,NT)
+       NLOS(LL,K,M)=0
+       IF(NCSERS(LL,M).EQ.0)THEN
+        TOX(L,K,NT)=WTCI(K,1)*CBS(LL,1,M)+WTCI(K,2)*CBS(LL,2,M)
+        TOX1(L,K,NT)=TOX(L,K,NT)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBW
+       L=LCBW(LL)
+       CLOW(LL,K,M)=TOXINIT(L,K,NT)
+       NLOW(LL,K,M)=0
+       IF(NCSERW(LL,M).EQ.0)THEN
+        TOX(L,K,NT)=WTCI(K,1)*CBW(LL,1,M)+WTCI(K,2)*CBW(LL,2,M)
+        TOX1(L,K,NT)=TOX(L,K,NT)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBE
+       L=LCBE(LL)
+       CLOE(LL,K,M)=TOXINIT(L,K,NT)
+       NLOE(LL,K,M)=0
+       IF(NCSERE(LL,3).EQ.0)THEN
+        TOX(L,K,NT)=WTCI(K,1)*CBE(LL,1,M)+WTCI(K,2)*CBE(LL,2,M)
+        TOX1(L,K,NT)=TOX(L,K,NT)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBN
+       L=LCBN(LL)
+       CLON(LL,K,M)=TOXINIT(L,K,NT)
+       NLON(LL,K,M)=0
+       IF(NCSERN(LL,M).EQ.0)THEN
+        TOX(L,K,NT)=WTCI(K,1)*CBN(LL,1,M)+WTCI(K,2)*CBN(LL,2,M)
+        TOX1(L,K,NT)=TOX(L,K,NT)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+      ENDIF
+      ENDDO
+      ENDIF
+C
+C **  INTIALIZE TOX BC IF NOT READ IN FROM RESTART FILE
+C **  AND CONSTANT INITIAL CONDITIONS ARE USED
+C
+      IISTMP=1
+      IF(ISRESTI.EQ.0) IISTMP=0
+      IF(ISRESTI.GE.1.AND.ISCI(5).EQ.0) IISTMP=0
+C
+      IF(IISTMP.EQ.0.AND.ISTRAN(5).EQ.1)THEN
+       DO NT=1,NTOX
+       IF(ITXINT(NT).EQ.0.OR.ITXINT(NT).EQ.2)THEN
+       M=4+NT
+C
+       DO K=1,KC
+       DO LL=1,NCBS
+       L=LCBS(LL)
+       NSID=NCSERS(LL,M)
+       CBT=WTCI(K,1)*CBS(LL,1,M)+WTCI(K,2)*CBS(LL,2,M)+CSERT(K,NSID,M)
+       CLOS(LL,K,M)=TOXINTW(NT)
+       NLOS(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBW
+       L=LCBW(LL)      
+       NSID=NCSERW(LL,M)
+       CBT=WTCI(K,1)*CBW(LL,1,M)+WTCI(K,2)*CBW(LL,2,M)+CSERT(K,NSID,M)
+       CLOW(LL,K,M)=TOXINTW(NT)
+       NLOW(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBE
+       L=LCBE(LL)
+       NSID=NCSERE(LL,M)
+       CBT=WTCI(K,1)*CBE(LL,1,M)+WTCI(K,2)*CBE(LL,2,M)+CSERT(K,NSID,M)
+       CLOE(LL,K,M)=TOXINTW(NT)
+       NLOE(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBN
+       L=LCBN(LL)
+       NSID=NCSERN(LL,M)
+       CBT=WTCI(K,1)*CBN(LL,1,M)+WTCI(K,2)*CBN(LL,2,M)+CSERT(K,NSID,M)
+       CLON(LL,K,M)=TOXINTW(NT)
+       NLON(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+      ENDIF
+      ENDDO
+      ENDIF
+C
+C **  INTIALIZE TOX BED IF NOT READ IN FROM RESTART FILE
+C **  AND VARIABLE INITIAL CONDITIONS ARE USED
+C
+      IISTMP=1
+      IF(ISRESTI.EQ.0) IISTMP=0
+      IF(ISRESTI.GE.1.AND.ISCI(5).EQ.0) IISTMP=0
+C
+      IF(IISTMP.EQ.0.AND.ISTRAN(5).EQ.1)THEN
+       DO NT=1,NTOX
+       IF(ITXINT(NT).EQ.2.OR.ITXINT(NT).EQ.3)THEN
+C
+       DO K=1,KB
+       DO L=2,LA
+       TOXB(L,K,NT)=TOXBINIT(L,K,NT)
+       TOXB1(L,K,NT)=TOXB(L,K,NT)
+       ENDDO
+       ENDDO
+C
+       ENDIF
+       ENDDO
+      ENDIF
+C
+C **  INTIALIZE SED AND BC IF NOT READ IN FROM RESTART FILE
+C **  AND VARIABLE INITIAL CONDITIONS ARE USED
+C
+      IISTMP=1
+      IF(ISRESTI.EQ.0) IISTMP=0
+      IF(ISRESTI.GE.1.AND.ISCI(6).EQ.0) IISTMP=0
+C
+      IF(IISTMP.EQ.0.AND.ISTRAN(6).EQ.1)THEN
+       IF(ISEDINT.EQ.1.OR.ISEDINT.EQ.3)THEN
+       DO NS=1,NSED
+       M=4+NTOX+NS
+
+       DO K=1,KC
+       DO L=2,LA
+       SED(L,K,NS)=SEDINIT(L,K,NS)
+       SED1(L,K,NS)=SED(L,K,NS)
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBS
+       L=LCBS(LL)
+       CLOS(LL,K,M)=SEDINIT(L,K,NS)
+       NLOS(LL,K,M)=0
+       IF(NCSERS(LL,M).EQ.0)THEN
+        SED(L,K,NS)=WTCI(K,1)*CBS(LL,1,M)+WTCI(K,2)*CBS(LL,2,M)
+        SED1(L,K,NS)=SED(L,K,NS)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBW
+       L=LCBW(LL)
+       CLOW(LL,K,M)=SEDINIT(L,K,NS)
+       NLOW(LL,K,M)=0
+       IF(NCSERW(LL,M).EQ.0)THEN
+        SED(L,K,NS)=WTCI(K,1)*CBW(LL,1,M)+WTCI(K,2)*CBW(LL,2,M)
+        SED1(L,K,NS)=SED(L,K,NS)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBE
+       L=LCBE(LL)
+       CLOE(LL,K,M)=SEDINIT(L,K,NS)
+       NLOE(LL,K,M)=0
+       IF(NCSERE(LL,3).EQ.0)THEN
+        SED(L,K,NS)=WTCI(K,1)*CBE(LL,1,M)+WTCI(K,2)*CBE(LL,2,M)
+        SED1(L,K,NS)=SED(L,K,NS)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBN
+       L=LCBN(LL)
+       CLON(LL,K,M)=SEDINIT(L,K,NS)
+       NLON(LL,K,M)=0
+       IF(NCSERN(LL,M).EQ.0)THEN
+        SED(L,K,NS)=WTCI(K,1)*CBN(LL,1,M)+WTCI(K,2)*CBN(LL,2,M)
+        SED1(L,K,NS)=SED(L,K,NS)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+      ENDDO
+C
+	 DO K=1,KC
+	 DO L=2,LA
+	 FLOCDIA(L,K)=0.001
+	 SEDFLOCDIA(L,K)=FLOCDIA(L,K)*SED(L,K,1)
+	 ENDDO
+	 ENDDO
+C
+      ENDIF
+      ENDIF
+C
+C **  INTIALIZE SED BC IF NOT READ IN FROM RESTART FILE AND
+C **  CONSTANT INITIAL CONDITIONS ARE USED
+C
+      IISTMP=1
+      IF(ISRESTI.EQ.0) IISTMP=0
+      IF(ISRESTI.GE.1.AND.ISCI(6).EQ.0) IISTMP=0
+C
+      IF(IISTMP.EQ.0.AND.ISTRAN(6).EQ.1)THEN
+      IF(ISEDINT.EQ.0.OR.ISEDINT.EQ.2)THEN
+      DO NS=1,NSED
+       M=4+NTOX+NS
+C
+       DO K=1,KC
+       DO LL=1,NCBS
+       L=LCBS(LL)
+       NSID=NCSERS(LL,M)
+       CBT=WTCI(K,1)*CBS(LL,1,M)+WTCI(K,2)*CBS(LL,2,M)+CSERT(K,NSID,M)
+       CLOS(LL,K,M)=SEDO(NS)
+       NLOS(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBW
+       L=LCBW(LL)      
+       NSID=NCSERW(LL,M)
+       CBT=WTCI(K,1)*CBW(LL,1,M)+WTCI(K,2)*CBW(LL,2,M)+CSERT(K,NSID,M)
+       CLOW(LL,K,M)=SEDO(NS)
+       NLOW(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBE
+       L=LCBE(LL)
+       NSID=NCSERE(LL,M)
+       CBT=WTCI(K,1)*CBE(LL,1,M)+WTCI(K,2)*CBE(LL,2,M)+CSERT(K,NSID,M)
+       CLOE(LL,K,M)=SEDO(NS)
+       NLOE(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBN
+       L=LCBN(LL)
+       NSID=NCSERN(LL,M)
+       CBT=WTCI(K,1)*CBN(LL,1,M)+WTCI(K,2)*CBN(LL,2,M)+CSERT(K,NSID,M)
+       CLON(LL,K,M)=SEDO(NS)
+       NLON(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+      ENDDO
+      ENDIF
+      ENDIF
+C
+C **  INTIALIZE SED BED IF NOT READ IN FROM RESTART FILE
+C **  AND VARIABLE INITIAL CONDITIONS ARE USED
+C
+      IISTMP=1
+      IF(ISRESTI.EQ.0) IISTMP=0
+      IF(ISRESTI.GE.1.AND.ISCI(6).EQ.0) IISTMP=0
+C
+      IF(IISTMP.EQ.0.AND.ISTRAN(6).EQ.1)THEN
+       IF(ISEDINT.EQ.2.OR.ISEDINT.EQ.3)THEN
+C
+       DO NS=1,NSED
+       DO K=1,KB
+       DO L=2,LA
+       SEDB(L,K,NS)=SEDBINIT(L,K,NS)
+       SEDB1(L,K,NS)=SEDB(L,K,NS)
+       ENDDO
+       ENDDO
+       ENDDO
+C
+       ENDIF
+      ENDIF
+C
+C **  INTIALIZE SND AND BC IF NOT READ IN FROM RESTART FILE
+C **  AND VARIABLE INITIAL CONDITIONS ARE USED
+C
+      IISTMP=1
+      IF(ISRESTI.EQ.0) IISTMP=0
+      IF(ISRESTI.GE.1.AND.ISCI(7).EQ.0) IISTMP=0
+C
+      IF(IISTMP.EQ.0.AND.ISTRAN(7).EQ.1)THEN
+       IF(ISEDINT.EQ.1.OR.ISEDINT.EQ.3)THEN
+       DO NS=1,NSND
+       M=4+NTOX+NSED+NS
+
+       DO K=1,KC
+       DO L=2,LA
+       SND(L,K,NS)=SNDINIT(L,K,NS)
+       SND1(L,K,NS)=SND(L,K,NS)
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBS
+       L=LCBS(LL)
+       CLOS(LL,K,M)=SNDINIT(L,K,NS)
+       NLOS(LL,K,M)=0
+       IF(NCSERS(LL,M).EQ.0)THEN
+        SND(L,K,NS)=WTCI(K,1)*CBS(LL,1,M)+WTCI(K,2)*CBS(LL,2,M)
+        SND1(L,K,NS)=SND(L,K,NS)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBW
+       L=LCBW(LL)
+       CLOW(LL,K,M)=SNDINIT(L,K,NS)
+       NLOW(LL,K,M)=0
+       IF(NCSERW(LL,M).EQ.0)THEN
+        SND(L,K,NS)=WTCI(K,1)*CBW(LL,1,M)+WTCI(K,2)*CBW(LL,2,M)
+        SND1(L,K,NS)=SND(L,K,NS)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBE
+       L=LCBE(LL)
+       CLOE(LL,K,M)=SNDINIT(L,K,NS)
+       NLOE(LL,K,M)=0
+       IF(NCSERE(LL,3).EQ.0)THEN
+        SND(L,K,NS)=WTCI(K,1)*CBE(LL,1,M)+WTCI(K,2)*CBE(LL,2,M)
+        SND1(L,K,NS)=SND(L,K,NS)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBN
+       L=LCBN(LL)
+       CLON(LL,K,M)=SNDINIT(L,K,NS)
+       NLON(LL,K,M)=0
+       IF(NCSERN(LL,M).EQ.0)THEN
+        SND(L,K,NS)=WTCI(K,1)*CBN(LL,1,M)+WTCI(K,2)*CBN(LL,2,M)
+        SND1(L,K,NS)=SED(L,K,NS)
+       ENDIF
+       ENDDO
+       ENDDO
+C
+      ENDDO
+      ENDIF
+      ENDIF
+C
+C **  INTIALIZE SND BC IF NOT READ IN FROM RESTART FILE AND
+C **  CONSTANT INITIAL CONDITIONS ARE USED
+C
+      IISTMP=1
+      IF(ISRESTI.EQ.0) IISTMP=0
+      IF(ISRESTI.GE.1.AND.ISCI(7).EQ.0) IISTMP=0
+C
+      IF(IISTMP.EQ.0.AND.ISTRAN(7).EQ.1)THEN
+      IF(ISEDINT.EQ.0.OR.ISEDINT.EQ.2)THEN
+       DO NX=1,NSND
+       NS=NSED+NX
+       M=4+NTOX+NSED+NX
+C
+       DO K=1,KC
+       DO LL=1,NCBS
+       L=LCBS(LL)
+       NSID=NCSERS(LL,M)
+       CBT=WTCI(K,1)*CBS(LL,1,M)+WTCI(K,2)*CBS(LL,2,M)+CSERT(K,NSID,M)
+       CLOS(LL,K,M)=SEDO(NS)
+       NLOS(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBW
+       L=LCBW(LL)      
+       NSID=NCSERW(LL,M)
+       CBT=WTCI(K,1)*CBW(LL,1,M)+WTCI(K,2)*CBW(LL,2,M)+CSERT(K,NSID,M)
+       CLOW(LL,K,M)=SEDO(NS)
+       NLOW(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBE
+       L=LCBE(LL)
+       NSID=NCSERE(LL,M)
+       CBT=WTCI(K,1)*CBE(LL,1,M)+WTCI(K,2)*CBE(LL,2,M)+CSERT(K,NSID,M)
+       CLOE(LL,K,M)=SEDO(NS)
+       NLOE(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBN
+       L=LCBN(LL)
+       NSID=NCSERN(LL,M)
+       CBT=WTCI(K,1)*CBN(LL,1,M)+WTCI(K,2)*CBN(LL,2,M)+CSERT(K,NSID,M)
+       CLON(LL,K,M)=SEDO(NS)
+       NLON(LL,K,M)=0
+       ENDDO
+       ENDDO
+C
+      ENDDO
+      ENDIF
+      ENDIF
+C
+C **  INTIALIZE SND BED IF NOT READ IN FROM RESTART FILE
+C **  AND VARIABLE INITIAL CONDITIONS ARE USED
+C
+      IISTMP=1
+      IF(ISRESTI.EQ.0) IISTMP=0
+      IF(ISRESTI.GE.1.AND.ISCI(7).EQ.0) IISTMP=0
+C
+      IF(IISTMP.EQ.0.AND.ISTRAN(7).EQ.1)THEN
+       IF(ISEDINT.EQ.2.OR.ISEDINT.EQ.3)THEN
+C
+       DO NX=1,NSND
+       DO K=1,KB
+       DO L=2,LA
+       SNDB(L,K,NX)=SNDBINIT(L,K,NX)
+       SNDB1(L,K,NX)=SNDB(L,K,NX)
+       ENDDO
+       ENDDO
+       ENDDO
+C
+       ENDIF
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  CORRECT CONCENTRATIONS FOR GVC
+C
+      IF(IGRIDV.EQ.1)THEN
+C
+       IF(ISTRAN(1).GE.1)THEN
+         DO K=1,KC
+         DO L=1,LC
+          IF(K.LT.KGVCP(L)) SAL(L,K)=0.0
+          IF(K.LT.KGVCP(L)) SAL1(L,K)=0.0
+         ENDDO
+         ENDDO
+       ENDIF
+       IF(ISTRAN(2).GE.1)THEN
+         DO K=1,KC
+         DO L=1,LC
+          IF(K.LT.KGVCP(L)) TEM(L,K)=0.0
+          IF(K.LT.KGVCP(L)) TEM1(L,K)=0.0
+         ENDDO
+         ENDDO
+       ENDIF
+       IF(ISTRAN(3).GE.1)THEN
+         DO K=1,KC
+         DO L=1,LC
+          IF(K.LT.KGVCP(L)) DYE(L,K)=0.0
+          IF(K.LT.KGVCP(L)) DYE1(L,K)=0.0
+         ENDDO
+         ENDDO
+       ENDIF
+       IF(ISTRAN(5).GE.1)THEN
+         DO NT=1,NTOX      
+          DO K=1,KC
+          DO L=1,LC
+           IF(K.LT.KGVCP(L)) TOX(L,K,NT)=0.0
+          ENDDO
+         ENDDO
+         ENDDO
+       ENDIF
+       IF(ISTRAN(6).GE.1)THEN
+         DO NS=1,NSED
+          DO K=1,KC
+          DO L=1,LC
+           IF(K.LT.KGVCP(L)) SED(L,K,NS)=0.0
+          ENDDO
+         ENDDO
+         ENDDO
+       ENDIF
+       IF(ISTRAN(7).GE.1)THEN
+        DO NS=1,NSND
+         DO K=1,KC
+         DO L=1,LC
+          IF(K.LT.KGVCP(L)) SND(L,K,NS)=0.0
+         ENDDO
+        ENDDO
+         ENDDO
+       ENDIF
+C
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  INITIALIZE SEDIMENT BED
+C
+      IF(ISTRAN(6).GE.1.OR.ISTRAN(7).GE.1) CALL BEDINIT
+C     IF(NSED.GE.1.OR.NSND.GE.1) CALL BEDINIT
+C
+C**********************************************************************C
+C
+C **  INITIALIZE BUOYANCY AND EQUATION OF STATE
+C
+      CALL CALBUOY
+C
+C**********************************************************************C
+C
+C **  INITIALIZE SFL IF(ISRESTI.EQ.0.AND ISTRAN(4).GE.1)
+C
+      IF(ISRESTI.EQ.0.AND.ISTRAN(4).GE.1)THEN
+      IF(ISLTMT.EQ.0.AND.ISTOPT(4).EQ.11)THEN
+C
+       DO K=1,KC
+       DO L=1,LC
+       SFL(L,K)=SAL(L,K)
+       SFL2(L,K)=SAL(L,K)
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBS
+       L=LCBS(LL)
+       CLOS(LL,K,5)=SALINIT(L,K)
+       NLOS(LL,K,5)=0
+       SFL(L,K)=WTCI(K,1)*CBS(LL,1,5)+WTCI(K,2)*CBS(LL,2,5)
+       SFL2(L,K)=SFL(L,K)
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBW
+       L=LCBW(LL)      
+       CLOW(LL,K,5)=SALINIT(L,K)
+       NLOW(LL,K,5)=0
+       SFL(L,K)=WTCI(K,1)*CBW(LL,1,5)+WTCI(K,2)*CBW(LL,2,5)
+       SFL2(L,K)=SFL(L,K)
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBE
+       L=LCBE(LL)
+       CLOE(LL,K,5)=SALINIT(L,K)
+       NLOE(LL,K,5)=0
+       SFL(L,K)=WTCI(K,1)*CBE(LL,1,5)+WTCI(K,2)*CBE(LL,2,5)
+       SFL2(L,K)=SFL(L,K)
+       ENDDO
+       ENDDO
+C
+       DO K=1,KC
+       DO LL=1,NCBN
+       L=LCBN(LL)
+       CLON(LL,K,5)=SALINIT(L,K)
+       NLON(LL,K,5)=0
+       SFL(L,K)=WTCI(K,1)*CBN(LL,1,5)+WTCI(K,2)*CBN(LL,2,5)
+       SFL2(L,K)=SFL(L,K)
+       ENDDO
+       ENDDO
+C
+      ENDIF
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  ACTIVATE DYE TRACER CONTINUITY CHECK
+C
+C----------------------------------------------------------------------C
+C
+      IF(ISMMC.EQ.1)THEN 
+C
+      DO K=1,KC
+      DO L=1,LC
+      DYE(L,K)=1.
+      DYE1(L,K)=1.
+      ENDDO
+      ENDDO
+C
+      DO K=1,KC
+C
+      DO LL=1,NCBS
+      CLOS(LL,K,3)=1.
+      NLOS(LL,K,3)=0
+      ENDDO
+C
+      DO LL=1,NCBW
+      CLOW(LL,K,3)=1.
+      NLOW(LL,K,3)=0
+      ENDDO
+C
+      DO LL=1,NCBE
+      CLOE(LL,K,3)=1.
+      NLOE(LL,K,3)=0
+      ENDDO
+C
+      DO LL=1,NCBN
+      CLON(LL,K,3)=1.
+      NLON(LL,K,3)=0
+      ENDDO
+C
+      ENDDO
+C
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  MASK CELLS TO BE CONVERTED FROM WATER TO LAND
+C
+C **  CALL MOVED TO SETBCS ON 23 JAN 2004
+c
+c      IF(ISMASK.EQ.1) CALL CELLMASK 
+C      
+C**********************************************************************C
+C
+C **  SET VERTICAL GRID DEPENDENT ARRAYS AND HARDWIRE DIMENSIONLESS 
+C **  MIXING LENGTH 
+C
+C     MOVED TO JUST BEFORE CALL SETGVC
+C      
+C**********************************************************************C
+C
+C **  INITIALIZE UNSTRETCHING PROCEDURE
+C
+C----------------------------------------------------------------------C
+C
+      DZPC=(SELVMAX-BELVMIN)/FLOAT(KPC)
+C
+      ZP(0)=BELVMIN
+      DO KP=1,KPC
+      ZP(KP)=ZP(KP-1)+DZPC
+      ENDDO
+C
+      DO KP=1,KPC
+      ZZP(KP)=0.5*(ZP(KP)+ZP(KP-1))
+      ENDDO
+C
+      DO L=2,LA
+      TMP=(BELV(L)-BELVMIN)/DZPC
+      KPB(L)=NINT(0.5+TMP)
+      ENDDO
+C
+C**********************************************************************C
+C
+C **  CALCULATE CONSTANT HORIZONTAL SPATIAL ARRAYS 
+C
+C----------------------------------------------------------------------C
+C
+      DO L=2,LA
+      DXYU(L)=DXU(L)*DYU(L)
+      DXYV(L)=DXV(L)*DYV(L)
+      DXYP(L)=STCAP(L)*DXP(L)*DYP(L)
+      DXIU(L)=1./DXU(L)
+      DYIU(L)=1./DYU(L)
+      DXIV(L)=1./DXV(L)
+      DYIV(L)=1./DYV(L)
+      DXYIP(L)=1./(STCAP(L)*DXP(L)*DYP(L))
+      DXYIU(L)=1./(DXU(L)*DYU(L))
+      DXYIV(L)=1./(DXV(L)*DYV(L))
+      HRU(L)=SUB(L)*HMU(L)*DYU(L)*DXIU(L)
+      HRV(L)=SVB(L)*HMV(L)*DXV(L)*DYIV(L)
+c      HRUO(L)=SUB(L)*DYU(L)*DXIU(L)
+c      HRVO(L)=SVB(L)*DXV(L)*DYIV(L)
+      HRUO(L)=SUBO(L)*DYU(L)*DXIU(L)
+      HRVO(L)=SVBO(L)*DXV(L)*DYIV(L)
+      SBX(L)=0.5*SBX(L)*DYU(L)
+      SBY(L)=0.5*SBY(L)*DXV(L)
+      SBXO(L)=SBX(L)
+      SBYO(L)=SBY(L)
+      SNLPX(L)=GID2*SNLPX(L)*DYU(L)
+      SNLPY(L)=GID2*SNLPY(L)*DXV(L)
+      ENDDO
+C
+C**********************************************************************C
+C
+C **  DEACTIVATE DRY CELLS
+C
+C     IF(ISDRY.GE.1.AND.ISDRY.LE.3)THEN
+C       OPEN(1,FILE='DRYWET.LOG',POSITION='APPEND',STATUS='UNKNOWN')
+C       DO L=2,LA
+C       IF(HP(L).LE.HDRY)THEN
+C         LN=LNC(L)
+C         NTMP=0
+C         WRITE(1,6902)NTMP,IL(L),JL(L),HP(L),H1P(L),H2P(L)
+C         WRITE(6,6902)NTMP,IL(L),JL(L),HP(L),H1P(L),H2P(L)
+C         WRITE(8,6902)NTMP,IL(L),JL(L),HP(L),H1P(L),H2P(L)
+C         NATDRY(L)=0
+C         ISCDRY(L)=2  
+C         SUB(L)=0.
+C         SUB(L+1)=0.
+C         SVB(L)=0.
+C         SVB(LN)=0.  
+C         SBX(L)=0.
+C         SBX(L+1)=0.
+C         SBY(L)=0.
+C         SBY(LN)=0.  
+C       ENDIF
+C       ENDDO
+C       CLOSE(1)        
+C     ENDIF
+C
+ 6902 FORMAT('  DRYING AT N,I,J =',I10,2I6,'  H,H1,H2 =',3(2X,E12.4))
+C
+C**********************************************************************C
+C
+C **  CHECK FOR DRYING AND SET SWITCHES ON RESTART
+C    'fixed moved to restin1'
+C
+C----------------------------------------------------------------------C
+C
+c      IF(ISDRY.GE.1.AND.ISRESTI.EQ.1)THEN 
+c      OPEN(1,FILE='DRYWET.LOG',POSITION='APPEND',STATUS='UNKNOWN')
+C
+c      DO L=2,LA
+c      LS=LSC(L)
+c      LN=LNC(L)
+c      HUTMPP=0.5*(HP(L)+HP(L-1))
+c      IF(HUTMPP.LE.HUWET(L))THEN
+c        SUB(L)=0.
+c        SBX(L)=0.
+c      ENDIF
+c      HUTMPP=0.5*(HP(L)+HP(L+1))
+c      IF(HUTMPP.LE.HUWET(L+1))THEN
+c        SUB(L+1)=0.
+c        SBX(L+1)=0.
+c      ENDIF
+c      HVTMPP=0.5*(HP(L)+HP(LS))
+c      IF(HVTMPP.LE.HVWET(L))THEN
+c        SVB(L)=0.
+c        SBY(L)=0.
+c      ENDIF
+c      HVTMPP=0.5*(HP(L)+HP(LN))
+c      IF(HVTMPP.LE.HVWET(LN))THEN
+c        SVB(LN)=0.
+c        SBY(LN)=0.
+c      ENDIF
+c      IF(HP(L).LE.HDRY)THEN
+c        SUB(L)=0.
+c        SVB(L)=0.
+c        SUB(L+1)=0.
+c        SVB(LN)=0.
+c        SBX(L)=0.
+c        SBY(L)=0.
+c        SBX(L+1)=0.
+c        SBY(LN)=0.
+c      ENDIF
+c      ENDDO
+C
+c      CLOSE(1)
+c      ENDIF
+C 
+C**********************************************************************C
+C
+C **  INITIALIZE ZERO DIMENSION VOLUME BALANCE
+C 
+C----------------------------------------------------------------------C
+C
+      IF(ISDRY.GE.1.AND.ISDRY.LE.98)THEN
+        OPEN(1,FILE='ZVOLBAL.OUT',STATUS='UNKNOWN')
+        CLOSE(1,STATUS='DELETE')
+        OPEN(1,FILE='AVSEL.OUT',STATUS='UNKNOWN')
+        LPBTMP=0
+        DO L=2,LA
+        ISLUSED(L)=0
+        IF(SPB(L).EQ.0)THEN
+          LPBTMP=LPBTMP+1
+          ISLUSED(L)=1
+        ENDIF
+        LORDER(L)=0
+        ENDDO
+        ISLUSED(1)=1
+        ISLUSED(LC)=1
+        LORMAX=LC-2-LPBTMP
+        DO LS=1,LORMAX
+        BELMIN=100000.
+          DO L=2,LA
+           IF(SPB(L).NE.0.AND.ISLUSED(L).NE.1)THEN
+             IF(BELV(L).LT.BELMIN)THEN
+               LBELMIN=L
+               BELMIN=BELV(L)
+             ENDIF
+           ENDIF
+           ENDDO
+         LORDER(LS)=LBELMIN
+         ISLUSED(LBELMIN)=1
+        ENDDO
+        WRITE(1,5300)
+        LS=1
+        L=LORDER(LS)
+        BELSURF(LS)=BELV(L)
+        ASURFEL(LS)=DXYP(L)
+        VOLSEL(LS)=0.
+        WRITE(1,5301)LS,BELSURF(LS),ASURFEL(LS),VOLSEL(LS)
+        DO LS=2,LORMAX
+          L=LORDER(LS)
+          BELSURF(LS)=BELV(L)
+          ASURFEL(LS)=ASURFEL(LS-1)+DXYP(L)
+          VOLSEL(LS)=VOLSEL(LS-1)+0.5*(BELSURF(LS)-BELSURF(LS-1))*
+     &                                (ASURFEL(LS)+ASURFEL(LS-1))
+        WRITE(1,5301)LS,BELSURF(LS),ASURFEL(LS),VOLSEL(LS)
+        ENDDO  
+        LS=LORMAX+1
+        BELSURF(LS)=BELV(L)+10.0
+        ASURFEL(LS)=ASURFEL(LS-1)
+        VOLSEL(LS)=VOLSEL(LS-1)+0.5*(BELSURF(LS)-BELSURF(LS-1))*
+     &                                (ASURFEL(LS)+ASURFEL(LS-1))
+        WRITE(1,5301)LS,BELSURF(LS),ASURFEL(LS),VOLSEL(LS)
+        VOLZERD=0.
+        VOLLDRY=0.
+        DO L=2,LA
+        IF(SPB(L).NE.0)THEN
+          VOLZERD=VOLZERD+DXYP(L)*HP(L)
+          IF(HP(L).GT.HDRY) VOLLDRY=VOLLDRY+DXYP(L)*HP(L)
+        ENDIF
+        ENDDO
+        DO LS=1,LORMAX
+        IF(VOLZERD.GE.VOLSEL(LS).AND.VOLZERD.LT.VOLSEL(LS+1))THEN
+           WTM=VOLSEL(LS+1)-VOLZERD
+           WTMP=VOLZERD-VOLSEL(LS)
+           DELVOL=VOLSEL(LS+1)-VOLSEL(LS)
+           WTM=WTM/DELVOL
+           WTMP=WTMP/DELVOL
+           SELZERD=WTM*BELSURF(LS)+WTMP*BELSURF(LS+1)
+           ASFZERD=WTM*ASURFEL(LS)+WTMP*ASURFEL(LS+1)
+        ENDIF
+        ENDDO
+        VETZERD=VOLZERD
+        WRITE(1,5302)
+        WRITE(1,5303) SELZERD,ASFZERD,VOLZERD,VOLLDRY
+        CLOSE(1)        
+      ENDIF
+C
+ 5300 FORMAT('   M    BELSURF     ASURFEL     ',
+     &       '   VOLSEL',/)
+ 5301 FORMAT(1X,I3,2X,F10.5,2X,E12.4,2X,E12.4)
+ 5302 FORMAT(/)
+ 5303 FORMAT(2X,F10.5,3(2X,E12.4))
+C
+C**********************************************************************C
+C
+C **  INITIALIZE ELEVATION OF ACTIVE GROUNDWATER ZONE FOR COLD START
+C 
+C----------------------------------------------------------------------C
+C
+C       WRITE(6,5301) ISGWIE,DAGWZ,RNPOR,RIFTRM
+C
+        IF(ISGWIE.GE.1.AND.ISRESTI.EQ.0)THEN
+C
+        DO L=2,LA
+          IF(HP(L).GT.HDRY)THEN
+            AGWELV(L)=BELV(L)
+           ELSE
+            IF(BELAGW(L).LT.SELZERD)THEN
+              AGWELV(L)=SELZERD
+              AGWELV(L)=MIN(AGWELV(L),BELV(L))
+             ELSE
+              AGWELV(L)=BELAGW(L)
+            ENDIF
+          ENDIF
+        ENDDO
+C
+        DO L=2,LA
+        AGWELV1(L)=AGWELV(L)
+        AGWELV2(L)=AGWELV(L)
+        ENDDO
+C
+        OPEN(1,FILE='GWELV.OUT',STATUS='UNKNOWN')
+        WRITE(1,5400)
+        WRITE(1,5402)
+        DO L=2,LA
+        WRITE(1,5401)IL(L),JL(L),BELV(L),BELAGW(L),AGWELV(L)
+        ENDDO
+        CLOSE(1)
+C
+        ENDIF
+C
+C
+ 5400 FORMAT('   I   J    BELELV      BELAGW     ',
+     &       '   AGWELV',/)
+ 5401 FORMAT(1X,2I5,2X,F10.5,2X,F10.5,2X,F10.5)
+ 5402 FORMAT(/)
+C                         
+C**********************************************************************C
+C
+C **  CALCULATE CONSTANT C ARRAYS FOR EXTERNAL P SOLUTION
+C **  HRU=SUB*HMU*DYU/DXU & HRV=SVB*HMV*DXV/DYV 
+C **  DXYIP=1/(DXP*DYP)
+C 
+C----------------------------------------------------------------------C
+C
+      IF(ISLTMT.EQ.0)THEN
+C
+C----------------------------------------------------------------------C
+C
+      IF(IRVEC.NE.9)THEN
+C
+      DO L=2,LA
+      CC(L)=1.
+      CCC(L)=1.
+      ENDDO
+C
+      IF(ISRLID.EQ.1)THEN
+       DO L=2,LA
+       CC(L)=0. 
+       CCC(L)=0. 
+       IF(SPB(L).EQ.0.) CC(L)=1.
+       IF(SPB(L).EQ.0.) CCC(L)=1.
+       ENDDO
+      ENDIF
+C
+      DO L=2,LA
+      LN=LNC(L)
+      C1=-G*DT*DT*SPB(L)*DXYIP(L)
+      CS(L)=C1*HRV(L)
+      CW(L)=C1*HRU(L)
+      CE(L)=C1*HRU(L+1)
+      CN(L)=C1*HRV(LN)
+      CC(L)=CC(L)-CS(L)-CW(L)-CE(L)-CN(L)
+      CCI(L)=1./CC(L)
+      CCS(L)=0.25*CS(L)
+      CCW(L)=0.25*CW(L)
+      CCE(L)=0.25*CE(L)
+      CCN(L)=0.25*CN(L)
+      CCC(L)=CCC(L)-CCS(L)-CCW(L)-CCE(L)-CCN(L)
+      CCCI(L)=1./CCC(L)
+      ENDDO
+C
+      DO LR=1,NRC
+      L=LRC(LR)
+      CCSR(LR)=CCS(L)*CCCI(L)
+      CCWR(LR)=CCW(L)*CCCI(L)
+      CCER(LR)=CCE(L)*CCCI(L)
+      CCNR(LR)=CCN(L)*CCCI(L)
+      CSR(LR)=CS(L)*CCI(L)
+      CWR(LR)=CW(L)*CCI(L)
+      CER(LR)=CE(L)*CCI(L)
+      CNR(LR)=CN(L)*CCI(L)
+      ENDDO
+C
+      DO LB=1,NBC
+      L=LBC(LB)
+      CCSB(LB)=CCS(L)*CCCI(L)
+      CCWB(LB)=CCW(L)*CCCI(L)
+      CCEB(LB)=CCE(L)*CCCI(L)
+      CCNB(LB)=CCN(L)*CCCI(L)
+      CSB(LB)=CS(L)*CCI(L)
+      CWB(LB)=CW(L)*CCI(L)
+      CEB(LB)=CE(L)*CCI(L)
+      CNB(LB)=CN(L)*CCI(L)
+      ENDDO
+C
+      DO LL=1,NPBW
+      L=LPBW(LL)
+      IF(ISPBW(LL).EQ.0)THEN
+       IF(ISRED(L).EQ.1)THEN
+        LR=LLRC(L)
+        CER(LR)=0.
+        CCER(LR)=0.
+       ELSE
+        LB=LLBC(L)
+        CEB(LB)=0.
+        CCEB(LB)=0.
+       ENDIF
+      ENDIF
+      ENDDO
+C
+      DO LL=1,NPBE
+      L=LPBE(LL)
+      IF(ISPBE(LL).EQ.0)THEN
+       IF(ISRED(L).EQ.1)THEN
+        LR=LLRC(L)
+        CWR(LR)=0.
+        CCWR(LR)=0.
+       ELSE
+        LB=LLBC(L)
+        CWB(LB)=0.
+        CCWB(LB)=0.
+       ENDIF
+      ENDIF
+      ENDDO
+C
+      DO LL=1,NPBS
+      L=LPBS(LL)
+      IF(ISPBS(LL).EQ.0)THEN
+       IF(ISRED(L).EQ.1)THEN
+        LR=LLRC(L)
+        CNR(LR)=0.
+        CCNR(LR)=0.
+       ELSE
+        LB=LLBC(L)
+        CNB(LB)=0.
+        CCNB(LB)=0.
+       ENDIF
+      ENDIF
+      ENDDO
+C
+      DO LL=1,NPBN
+      L=LPBN(LL)
+      IF(ISPBN(LL).EQ.0)THEN
+       IF(ISRED(L).EQ.1)THEN
+        LR=LLRC(L)
+        CSR(LR)=0.
+        CCSR(LR)=0.
+       ELSE
+        LB=LLBC(L)
+        CSB(LB)=0.
+        CCSB(LB)=0.
+       ENDIF
+      ENDIF
+      ENDDO
+C
+      ENDIF
+C
+C----------------------------------------------------------------------C
+C
+      ELSE
+C
+C----------------------------------------------------------------------C
+C
+      DO L=2,LA
+      LE=L+1
+      LN=LNC(L)
+      C1=-SPB(L)/(HRV(L)+HRU(L)+HRU(LE)+HRV(LN))
+      CS(L)=C1*HRV(L)
+      CW(L)=C1*HRU(L)
+      CE(L)=C1*HRU(LE)
+      CN(L)=C1*HRV(LN)
+      CC(L)=C1
+      ENDDO
+C
+      DO LL=1,NPBE
+      L=LPBE(LL)-1
+      LE=L+1
+      LN=LNC(L)
+      C1=(HRV(L)+HRU(L)+HRV(LN))
+      IF(C1.EQ.0.) C1=1.
+      C1=-SPB(L)/C1
+      CS(L)=C1*HRV(L)
+      CW(L)=C1*HRU(L)
+      CE(L)=0.
+      CN(L)=C1*HRV(LN)
+      CC(L)=C1
+      ENDDO
+C
+      DO LL=1,NPBW
+      L=LPBW(LL)+1
+      LE=L+1
+      LN=LNC(L)
+      C1=(HRV(L)+HRU(LE)+HRV(LN))
+      IF(C1.EQ.0.) C1=1.
+      C1=-SPB(L)/C1
+      CS(L)=C1*HRV(L)
+      CW(L)=0.
+      CE(L)=C1*HRU(LE)
+      CN(L)=C1*HRV(LN)
+      CC(L)=C1
+      ENDDO
+C
+      DO LL=1,NPBN
+      L=LPBN(LL)
+      L=LSC(L)
+      LE=L+1
+      LN=LNC(L)
+      C1=(HRV(L)+HRU(L)+HRU(LE))
+      IF(C1.EQ.0.) C1=1.
+      C1=-SPB(L)/C1
+      CS(L)=C1*HRV(L)
+      CW(L)=C1*HRU(L)
+      CE(L)=C1*HRU(LE)
+      CN(L)=0.
+      CC(L)=C1
+      ENDDO
+C
+      DO LL=1,NPBS
+      L=LPBS(LL)
+      L=LNC(L)
+      LE=L+1
+      LN=LNC(L)
+      C1=(HRU(L)+HRU(LE)+HRV(LN))
+      IF(C1.EQ.0.) C1=1.
+      C1=-SPB(L)/C1
+      CS(L)=0.
+      CW(L)=C1*HRU(L)
+      CE(L)=C1*HRU(LE)
+      CN(L)=C1*HRV(LN)
+      CC(L)=C1
+      ENDDO
+C
+C----------------------------------------------------------------------C
+C
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  SMOOTH INITIAL SALINITY
+C
+C----------------------------------------------------------------------C
+C
+      IF(NSBMAX.GE.1)THEN
+      CALL SALTSMTH
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  OUTPUT INITIAL DEPTH AND SALINITY FIELDS
+C
+C----------------------------------------------------------------------C
+C
+C **  PLOT SMOOTHED CELL CENTER STATIC DEPTHS
+C
+      DO L=2,LA
+      PAM(L)=HMP(L)
+      ENDDO
+      WRITE (7,16)
+      CALL PPLOT (2)
+C
+C----------------------------------------------------------------------C
+C
+      CALL DEPPLT
+C
+C----------------------------------------------------------------------C
+C
+C **  PLOT INITIAL SALINITY IN SURFACE AND BOTTOM LAYERS
+C
+      DO KK=1,KC,KS
+      DO L=2,LA
+      PAM(L)=SAL(L,KK)
+      ENDDO
+      WRITE (7,316) KK
+      CALL PPLOT (1)
+      ENDDO
+C
+C----------------------------------------------------------------------C
+C
+   16 FORMAT (1H1,' CELL CENTER STATIC DEPTHS',//)
+  316 FORMAT (1H1,'INITIAL SALINITY IN LAYER',I5,//)
+C
+C**********************************************************************C
+C
+C **  INITIALIZE SALINITY AND TEMPATURE DATA ASSIMILATION
+C
+      DO J=1,NLDAM
+	DO I=1,NDDAM
+        FSALASM(I,J)=0.0
+	  FVOLASM(I,J)=0.0
+        FTEMASM(I,J)=0.0
+	ENDDO
+	ENDDO
+C
+C**********************************************************************C
+C
+C **  INITIALIZE WATER QUALITY MODEL AND READ INPUT 
+C
+      IF(ISTRAN(8).GE.1) CALL WQ3DINP
+C
+C**********************************************************************C
+C
+C **  INITIALIZE EFDC EXPLORER OUTPUT 
+C     
+      IF(ISSPH(8).EQ.1.OR.ISBEXP.EQ.1) CALL EEXPOUT(1)
+C
+C**********************************************************************C
+C
+C **  SELECT FULL HYDRODYNAMIC AND MASS TRANSPORT CALCULATION OR
+C **  LONG-TERM MASS TRANSPORT CALCULATION
+C
+      IF(ISLTMT.EQ.0)THEN
+         IF(IS1DCHAN.EQ.0)THEN
+           IF(IS2TIM.EQ.0) THEN
+		   IF(IGRIDV.EQ.0) CALL HDMT
+		   IF(IGRIDV.EQ.1) CALL HDMTGVC
+           ENDIF
+           IF(IS2TIM.GE.1) CALL HDMT2T
+         ENDIF
+         IF(IS1DCHAN.GE.1) CALL HDMT1D
+      ENDIF
+      IF(ISLTMT.GE.1) CALL LTMT
+C
+C**********************************************************************C
+C
+C **  OUTPUT TIMING INFORMATION
+C
+C **  EE TIMING INFO
+C
+      TIMEEND=SECNDS(TIMEEND)
+	TCPU=DTIME(CPUTIME)
+      CALL TIMELOG(N,TIMEDAY)
+C
+C **  END EE TIMING INFO
+C
+C **  NORMAL SCREEN AND EFDCLOG.OUT FILE OUTPUT
+C
+      WRITE(6,5989)
+      WRITE(6,5995)THDMT,TCONG
+      WRITE(6,5996)TPUV,TSSED
+      WRITE(6,5997)TCEXP,TAVB
+      WRITE(6,5998)TUVW,TQQQ
+      WRITE(6,5999)TVDIF,TSADV
+      WRITE(6,5994)TLRPD,TTBXY
+      WRITE(6,5993)TWQDIF,TWQADV
+      WRITE(6,5992)TWQKIN,TWQSED
+      WRITE(6,5991)CPUTIME(1),CPUTIME(2)
+      WRITE(6,5990)TIMEEND,TCPU
+C
+      WRITE(8,5989)
+      WRITE(8,5995)THDMT,TCONG
+      WRITE(8,5996)TPUV,TSSED
+      WRITE(8,5997)TCEXP,TAVB
+      WRITE(8,5998)TUVW,TQQQ
+      WRITE(8,5999)TVDIF,TSADV
+      WRITE(8,5994)TLRPD,TTBXY
+      WRITE(8,5993)TWQDIF,TWQADV
+      WRITE(8,5992)TWQKIN,TWQSED
+      WRITE(8,5991)CPUTIME(1),CPUTIME(2)
+      WRITE(8,5990)TIMEEND,TCPU
+C
+      IF(ISCRAY.NE.0)THEN
+        WRITE(6,5995)WTHDMT,WTCONG
+        WRITE(6,5996)WTPUV,WTSSED
+        WRITE(6,5997)WTCEXP,WTAVB
+        WRITE(6,5998)WTUVW,WTQQQ
+        WRITE(6,5999)WTVDIF,WTSADV
+        WRITE(6,5994)WTLRPD,WTTBXY
+        WRITE(6,5993)WTWQDIF,WTWQADV
+        WRITE(6,5992)WTWQKIN,WTWQSED
+        WRITE(8,5995)WTHDMT,WTCONG
+        WRITE(8,5996)WTPUV,WTSSED
+        WRITE(8,5997)WTCEXP,WTAVB
+        WRITE(8,5998)WTUVW,WTQQQ
+        WRITE(8,5999)WTVDIF,WTSADV
+        WRITE(8,5994)WTLRPD,WTTBXY
+        WRITE(8,5993)WTWQDIF,WTWQADV
+        WRITE(8,5992)WTWQKIN,WTWQSED
+	ENDIF
+C
+ 5989 FORMAT(//' TIMING INFORMATION IN SECONDS'/)
+ 5990 FORMAT(' ELLAPSED TIME = ',F16.2,'  CPU TIME    = ',F16.2/)
+ 5991 FORMAT(' USER CPU      = ',F16.2,'  SYSTEM CPU  = ',F16.2/)
+ 5992 FORMAT(' TWQKIN = ',F16.2,'  TWQSED = ',F16.2/)
+ 5993 FORMAT(' TWQDIF = ',F16.2,'  TWQADV = ',F16.2/)
+ 5994 FORMAT(' TLRPD  = ',F16.2,'  TTBXY  = ',F16.2/)
+ 5995 FORMAT(' THDMT  = ',F16.2,'  TCONG  = ',F16.2/)
+ 5996 FORMAT(' TPUV   = ',F16.2,'  TSSED  = ',F16.2/)
+ 5997 FORMAT(' TCEXP  = ',F16.2,'  TAVB   = ',F16.2/)
+ 5998 FORMAT(' TUVW   = ',F16.2,'  TQQQ   = ',F16.2/)
+ 5999 FORMAT(' TVDIF  = ',F16.2,'  TSADV  = ',F16.2/)
+C
+C **  END NORMAL SCREEN AND EFDCLOG.OUT FILE OUTPUT
+C
+C **  TIMING OUTPUT REQUIRED BY EE
+C **  PLEASE CONFINE EE RELATED CHANGES TO FOLLOWING BLOCK OF CODE
+C
+      TIMEEND=TIMEEND/3600.
+	TCPU=TCPU/3600.
+C
+      WRITE(9,7995)WTHDMT,WTCONG
+      WRITE(9,7996)WTPUV,WTCGRS
+      WRITE(9,7997)WTCEXP,WTAVB
+      WRITE(9,7998)WTUVW,WTQQQ
+      WRITE(9,7999)WTVDIF,WTSADV
+      WRITE(9,7994)WTLRPD
+      WRITE(9,7993)WTWQDIF,WTWQADV
+      WRITE(9,7992)WTWQKIN,WTWQSED
+C
+      WRITE(9,6995)THDMT/3600.,TCONG/3600.
+      WRITE(9,6996)TPUV/3600.,TSSED/3600.
+      WRITE(9,6997)TCEXP/3600.,TAVB/3600.
+      WRITE(9,6998)TUVW/3600.,TQQQ/3600.
+      WRITE(9,6999)TVDIF/3600.,TSADV/3600.
+      WRITE(9,7000)TLRPD/3600.,TMISC/3600.
+      WRITE(9,7001)CPUTIME(1)/3600.,CPUTIME(2)/3600.
+      WRITE(9,7002) REAL(TIMEEND),TCPU
+C
+ 6995 FORMAT(//'***TIMING (Hours)',/,
+     &       'T HDMT       = ',F16.2,'  T CONG GRAD  = ',F16.2)
+ 6996 FORMAT('T P&UV VELS  = ',F16.2,'  T SSEDTOX    = ',F16.2)
+ 6997 FORMAT('T EXPLICIT   = ',F16.2,'  T C VERT V&D = ',F16.2)
+ 6998 FORMAT('T CALC UVW   = ',F16.2,'  T TURB QQQ   = ',F16.2)
+ 6999 FORMAT('T VERT DFUSN = ',F16.2,'  T ADV TRANSP = ',F16.2)
+ 7000 FORMAT('TLRPD        = ',F16.2,'  T MISC TIME  = ',F16.2)
+ 7001 FORMAT('CPU USER     = ',F16.2,'  CPU SYSTEM   = ',F16.2)
+ 7002 FORMAT('ELAPSED TIME = ',F16.2,'  CPU TIME     = ',F16.2)
+C
+ 7992 FORMAT(' WTWQKIN = ',F16.2,'  WTWQSED = ',F16.2/)
+ 7993 FORMAT(' WTWQDIF = ',F16.2,'  WTWQADV = ',F16.2/)
+ 7994 FORMAT(' WTLRPD = ',F16.2/)
+ 7995 FORMAT(' WTHDMT = ',F16.2,'  WTCONG = ',F16.2/)
+ 7996 FORMAT(' WTPUV  = ',F16.2,'  WTCGRS = ',F16.2/)
+ 7997 FORMAT(' WTCEXP = ',F16.2,'  WTAVB  = ',F16.2/)
+ 7998 FORMAT(' WTUVW  = ',F16.2,'  WTQQQ  = ',F16.2/)
+ 7999 FORMAT(' WTVDIF = ',F16.2,'  WTSADV = ',F16.2/)
+C
+C **  PLEASE CONFINE EE RELATED CHANGES TO PRECEDING BLOCK OF CODE
+C **  END TIMING OUTPUT REQUIRED BY EE
+C
+C**********************************************************************C
+C
+C **  CLOSE OUTPUT  FILES 
+C
+C----------------------------------------------------------------------C
+C
+      CLOSE(7)
+      CLOSE(8)
+      CLOSE(9)
+C
+C**********************************************************************C
+C
+      STOP
+      END

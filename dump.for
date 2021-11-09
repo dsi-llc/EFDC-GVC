@@ -1,0 +1,1843 @@
+C
+C**********************************************************************C
+C**********************************************************************C
+C**********************************************************************C
+C
+       SUBROUTINE DUMP
+C
+C **  THIS SUBROUTINE IS PART OF  EFDC-FULL VERSION 1.0a 
+C
+C **  LAST MODIFIED BY JOHN HAMRICK ON 1 NOVEMBER 2001
+C
+C----------------------------------------------------------------------C
+C
+C CHANGE RECORD
+C DATE MODIFIED     BY                 DATE APPROVED    BY
+C
+C----------------------------------------------------------------------C
+C
+C **  SUBROUTINE DUMP WRITES FULL FIELD DUMPS OF MODEL VARIABLES
+C **  AT SPECIFIED TIME INTERVALS
+C
+C**********************************************************************C
+C
+      INCLUDE 'EFDC.PAR'
+      INCLUDE 'EFDC.CMN'
+C
+C**********************************************************************C
+C
+C      DIMENSION P(LCM),SEDBT(LCM),SNDBT(LCM),VOLBW2(LCM),
+C     &          TOXB(LCM,NTXM),TOXPFTB(LCM,NTXM),U(LCM,KCM),          
+C     &          V(LCM,KCM),W(LCM,KCM),SAL(LCM,KCM),TEM(LCM,KCM),
+C     &          DYE(LCM,KCM),SEDT(LCM,KCM),
+C     &          SNDT(LCM,KCM),TOX(LCM,KCM,NTXM),
+C     &          TOXPFTW(LCM,KCM,NTXM),LNC(LCM),ISTRAN(7)
+C
+C      CHARACTER*13 FNDSEL,FNDUUU,FNDVVV,FNDWWW,FNDSAL,FNDTEM,FNDDYE,
+C     &          FNDSDW,FNDSDB,FNDSNW,FNDSNB,FNDBDH,FNDTXW(NTXM),
+C     &          FNDTXB(NTXM),FNDTPW(NTXM),FNDTPB(NTXM)
+C          
+C**********************************************************************C
+C
+      DIMENSION TXWMAX(NTXM),TXWMIN(NTXM),TXBMAX(NTXM),TXBMIN(NTXM)
+      DIMENSION DMPVALL(LCM-2),DMPVAL(LCM-2,KCM),DMPVALB(LCM-2,KBM)
+      DIMENSION IDMPVALL(LCM-2),IDMPVAL(LCM-2,KCM)
+c      INTEGER*1 IB08VALL(LCM-2),IB08VAL(LCM-2,KCM)
+c      INTEGER*2 IB16VALL(LCM-2),IB16VAL(LCM-2,KCM)
+      DIMENSION IB08VALL(LCM-2),IB08VAL(LCM-2,KCM)
+      DIMENSION IB16VALL(LCM-2),IB16VAL(LCM-2,KCM)
+      CHARACTER*1 CZTT(0:9)
+      CHARACTER*1 CCHTMF,CCHTMS
+      CHARACTER*2 CNTTOX(NTXM)
+C
+C**********************************************************************C
+C
+C **  INFORMATION FOR TESTING AS STAND ALONE PROGRAM
+C
+C      LC=514
+C      LA=LC-1
+C      KC=10
+C      NTOX=20
+C
+C      DO L=1,LC
+C       P(L)=FLOAT(L-1)
+C       SEDBT(L)=FLOAT(L-1)
+C       SNDBT(L)=FLOAT(L-1)
+C      ENDDO
+C      DO K=1,KC
+C       DO L=1,LC
+C        U(L,K)=FLOAT(L-1)
+C        V(L,K)=FLOAT(L-1)
+C        W(L,K)=FLOAT(L-1)
+C        SAL(L,K)=FLOAT(L-1)
+C        TEM(L,K)=FLOAT(L-1)
+C        DYE(L,K)=FLOAT(L-1)
+C        SEDT(L,K)=FLOAT(L-1)
+C        SNDT(L,K)=FLOAT(L-1)
+C       ENDDO
+C      ENDDO
+C
+C      DO NT=1,NTOX
+C      DO L=1,LC
+C       TOXB(L,KB,NT)=FLOAT(L-1)
+C       TOXPFTB(L,NT)=FLOAT(L-1)/512.
+C      ENDDO
+C      DO K=1,KC
+C       DO L=1,LC
+C        TOX(L,K,NT)=FLOAT(L-1)
+C        TOXPFTW(L,K,NT)=FLOAT(L-1)/512.
+C       ENDDO
+C      ENDDO
+C      ENDDO
+C
+C      JSDUMP=1
+C      ISDUMP=2 
+C      ISADMP=0
+C      NSDUMP=1 
+C      TSDUMP=1. 
+C      TEDUMP=1. 
+C      ISDMPP=1 
+C      ISDMPU=1 
+C      ISDMPW=1 
+C      ISDMPT=1 
+C      IADJDMP=-32768
+C      NTOX=20
+C
+C      DO N=1,7
+C       ISTRAN(N)=1
+C      ENDDO
+C
+C      GI=1./9.8
+C
+C      DT=1.
+C      TCON=1
+C      TBEGIN=0.
+C      N=1
+C
+C**********************************************************************C
+C
+      IF(JSDUMP.NE.1) GOTO 300
+C
+C----------------------------------------------------------------------C
+C
+      CZTT(0)='0'
+      CZTT(1)='1'
+      CZTT(2)='2'
+      CZTT(3)='3'
+      CZTT(4)='4'
+      CZTT(5)='5'
+      CZTT(6)='6'
+      CZTT(7)='7'
+      CZTT(8)='8'
+      CZTT(9)='9'
+C
+      DO MLTM=1,NTOX
+      MSDIG=MOD(MLTM,10)
+      MTMP=MLTM-MSDIG
+      MFDIG=MTMP/10
+      CCHTMF=CZTT(MFDIG)
+      CCHTMS=CZTT(MSDIG)
+      CNTTOX(MLTM)= CCHTMF // CCHTMS
+      ENDDO
+C
+C  ISDUMP=1, ASCII INTERGER OUTPUT
+C
+      IF(ISDUMP.EQ.1)THEN
+      FNDSEL='SELDMPI.ASC'
+      FNDUUU='UUUDMPI.ASC'
+      FNDVVV='VVVDMPI.ASC'
+      FNDWWW='WWWDMPI.ASC'
+      FNDSAL='SALDMPI.ASC'
+      FNDTEM='TEMDMPI.ASC'
+      FNDDYE='DYEDMPI.ASC'
+      FNDSDW='SDWDMPI.ASC'
+      FNDSDB='SDBDMPI.ASC'
+      FNDSNW='SNWDMPI.ASC'
+      FNDSNB='SNBDMPI.ASC'
+      FNDBDH='BDHDMPI.ASC'
+      DO NT=1,NTOX
+       FNDTWT(NT)='TWT'// CNTTOX(NT) // 'DPI.ASC'
+       FNDTWF(NT)='TWF'// CNTTOX(NT) // 'DPI.ASC'
+       FNDTWC(NT)='TWC'// CNTTOX(NT) // 'DPI.ASC'
+       FNDTWP(NT)='TWP'// CNTTOX(NT) // 'DPI.ASC'
+       FNDTBT(NT)='TBT'// CNTTOX(NT) // 'DPI.ASC'
+       FNDTBF(NT)='TBF'// CNTTOX(NT) // 'DPI.ASC'
+       FNDTBC(NT)='TBC'// CNTTOX(NT) // 'DPI.ASC'
+       FNDTBP(NT)='TBP'// CNTTOX(NT) // 'DPI.ASC'
+      ENDDO
+      ENDIF
+C
+C  ISDUMP=2, 16/8 BIT BINARY INTERGER OUTPUT
+C
+      IF(ISDUMP.EQ.2)THEN
+      FNDSEL='SELDMPI.BIN'
+      FNDUUU='UUUDMPI.BIN'
+      FNDVVV='VVVDMPI.BIN'
+      FNDWWW='WWWDMPI.BIN'
+      FNDSAL='SALDMPI.BIN'
+      FNDTEM='TEMDMPI.BIN'
+      FNDDYE='DYEDMPI.BIN'
+      FNDSDW='SDWDMPI.BIN'
+      FNDSDB='SDBDMPI.BIN'
+      FNDSNW='SNWDMPI.BIN'
+      FNDSNB='SNBDMPI.BIN'
+      FNDBDH='BDHDMPI.BIN'
+      DO NT=1,NTOX
+       FNDTWT(NT)='TWT'// CNTTOX(NT) // 'DPI.BIN'
+       FNDTWF(NT)='TWF'// CNTTOX(NT) // 'DPI.BIN'
+       FNDTWC(NT)='TWC'// CNTTOX(NT) // 'DPI.BIN'
+       FNDTWP(NT)='TWP'// CNTTOX(NT) // 'DPI.BIN'
+       FNDTBT(NT)='TBT'// CNTTOX(NT) // 'DPI.BIN'
+       FNDTBF(NT)='TBF'// CNTTOX(NT) // 'DPI.BIN'
+       FNDTBC(NT)='TBC'// CNTTOX(NT) // 'DPI.BIN'
+       FNDTBP(NT)='TBP'// CNTTOX(NT) // 'DPI.BIN'
+      ENDDO
+      ENDIF
+C
+C  ISDUMP=3, ASCII FLOATING POINT OUTPUT
+C
+      IF(ISDUMP.EQ.3)THEN
+      FNDSEL='SELDMPF.ASC'
+      FNDUUU='UUUDMPF.ASC'
+      FNDVVV='VVVDMPF.ASC'
+      FNDWWW='WWWDMPF.ASC'
+      FNDSAL='SALDMPF.ASC'
+      FNDTEM='TEMDMPF.ASC'
+      FNDDYE='DYEDMPF.ASC'
+      FNDSDW='SDWDMPF.ASC'
+      FNDSDB='SDBDMPF.ASC'
+      FNDSNW='SNWDMPF.ASC'
+      FNDSNB='SNBDMPF.ASC'
+      FNDQDO='QDODMPF.ASC'
+      FNDQAL='QALDMPF.ASC'
+      FNDBDH='BDHDMPF.ASC'
+      DO NT=1,NTOX
+       FNDTWT(NT)='TWT'// CNTTOX(NT) // 'DPF.ASC'
+       FNDTWF(NT)='TWF'// CNTTOX(NT) // 'DPF.ASC'
+       FNDTWC(NT)='TWC'// CNTTOX(NT) // 'DPF.ASC'
+       FNDTWP(NT)='TWP'// CNTTOX(NT) // 'DPF.ASC'
+       FNDTBT(NT)='TBT'// CNTTOX(NT) // 'DPF.ASC'
+       FNDTBF(NT)='TBF'// CNTTOX(NT) // 'DPF.ASC'
+       FNDTBC(NT)='TBC'// CNTTOX(NT) // 'DPF.ASC'
+       FNDTBP(NT)='TBP'// CNTTOX(NT) // 'DPF.ASC'
+      ENDDO
+      ENDIF
+C
+C  ISDUMP=4, 32/64 BIT BINARY FLOATING POINT OUTPUT
+C
+      IF(ISDUMP.EQ.4)THEN
+      FNDSEL='SELDMPF.BIN'
+      FNDUUU='UUUDMPF.BIN'
+      FNDVVV='VVVDMPF.BIN'
+      FNDWWW='WWWDMPF.BIN'
+      FNDSAL='SALDMPF.BIN'
+      FNDTEM='TEMDMPF.BIN'
+      FNDDYE='DYEDMPF.BIN'
+      FNDSDW='SDWDMPF.BIN'
+      FNDSDB='SDBDMPF.BIN'
+      FNDSNW='SNWDMPF.BIN'
+      FNDSNB='SNBDMPF.BIN'
+      FNDBDH='BDHDMPF.BIN'
+      DO NT=1,NTOX
+       FNDTWT(NT)='TWT'// CNTTOX(NT) // 'DPF.BIN'
+       FNDTWF(NT)='TWF'// CNTTOX(NT) // 'DPF.BIN'
+       FNDTWC(NT)='TWC'// CNTTOX(NT) // 'DPF.BIN'
+       FNDTWP(NT)='TWP'// CNTTOX(NT) // 'DPF.BIN'
+       FNDTBT(NT)='TBT'// CNTTOX(NT) // 'DPF.BIN'
+       FNDTBF(NT)='TBF'// CNTTOX(NT) // 'DPF.BIN'
+       FNDTBC(NT)='TBC'// CNTTOX(NT) // 'DPF.BIN'
+       FNDTBP(NT)='TBP'// CNTTOX(NT) // 'DPF.BIN'
+      ENDDO
+      ENDIF
+C
+      IF(ISADMP.EQ.0)THEN
+C
+        OPEN(1,FILE=FNDSEL)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDUUU)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDVVV)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDWWW)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDSAL)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDTEM)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDDYE)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDSDW)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDSDB)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDSNW)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDSNB)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDBDH)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDQDO)
+        CLOSE(1,STATUS='DELETE')
+C
+        OPEN(1,FILE=FNDQAL)
+        CLOSE(1,STATUS='DELETE')
+C
+        DO NT=1,NTOX
+         OPEN(1,FILE=FNDTWT(NT))
+         CLOSE(1,STATUS='DELETE')
+         OPEN(1,FILE=FNDTWF(NT))
+         CLOSE(1,STATUS='DELETE')
+         OPEN(1,FILE=FNDTWC(NT))
+         CLOSE(1,STATUS='DELETE')
+         OPEN(1,FILE=FNDTWP(NT))
+         CLOSE(1,STATUS='DELETE')
+         OPEN(1,FILE=FNDTBT(NT))
+         CLOSE(1,STATUS='DELETE')
+         OPEN(1,FILE=FNDTBF(NT))
+         CLOSE(1,STATUS='DELETE')
+         OPEN(1,FILE=FNDTBC(NT))
+         CLOSE(1,STATUS='DELETE')
+         OPEN(1,FILE=FNDTBP(NT))
+         CLOSE(1,STATUS='DELETE')
+        ENDDO
+C
+      ENDIF
+C
+      JSDUMP=0
+C
+C**********************************************************************C
+C
+  300 CONTINUE
+C
+C----------------------------------------------------------------------C
+C
+      DO K=1,KC
+       DO L=1,LC-2
+        DMPVAL(L,K)=0.
+        IDMPVAL(L,K)=0
+        IB08VAL(L,K)=0
+        IB16VAL(L,K)=0
+       ENDDO
+      ENDDO
+C
+      DO L=1,LC-2
+       DMPVALL(L)=0.
+       IDMPVALL(L)=0
+       IB08VALL(L)=0
+       IB16VALL(L)=0
+      ENDDO
+C
+      IF(ISDYNSTP.EQ.0)THEN
+        TIME=(DT*FLOAT(N)+TCON*TBEGIN)/86400.
+      ELSE
+        TIME=TIMESEC/86400.
+      ENDIF
+      R1=1.
+      R0=0.
+C
+C**********************************************************************C
+C
+C **  IF(ISDUMP EQUAL 1 OR 2, SCALE VARIABLES AND WRITE INTEGER 
+C **  DUMP FILES
+C
+      IF(ISDUMP.LE.2)THEN
+C
+C **  SCALE VARIABLES
+C
+      SELMAX=-1.E12
+      SELMIN=1.E12
+      UUUMAX=-1.E12
+      UUUMIN=1.E12
+      VVVMAX=-1.E12
+      VVVMIN=1.E12
+      WWWMAX=-1.E12
+      WWWMIN=1.E12
+      SALMAX=-1.E12
+      SALMIN=1.E12
+      TEMMAX=-1.E12
+      TEMMIN=1.E12
+      DYEMAX=-1.E12
+      DYEMIN=1.E12
+      SDWMAX=-1.E12
+      SDWMIN=1.E12
+      SDBMAX=-1.E12
+      SDBMIN=1.E12
+      SNWMAX=-1.E12
+      SNWMIN=1.E12
+      SNWMAX=-1.E12
+      SNWMIN=1.E12
+      SNBMAX=-1.E12
+      SNBMIN=1.E12
+      BDHMAX=-1.E12
+      BDHMIN=1.E12
+      DO NT=1,NTOX
+       TXWMAX(NT)=-1.E12
+       TXWMIN(NT)=1.E12
+       TXBMAX(NT)=-1.E12
+       TXBMIN(NT)=1.E12
+      ENDDO       
+C
+      IF(ISDMPP.GE.1)THEN
+        DO L=2,LA
+         SELMAX=MAX(SELMAX,P(L))
+         SELMIN=MIN(SELMIN,P(L))
+        ENDDO
+      ENDIF
+      SELMAX=GI*SELMAX
+      SELMIN=GI*SELMIN
+C
+      IF(ISDMPU.GE.1)THEN
+        DO K=1,KC
+        DO L=2,LA
+         UTMP=0.5*(U(L,K)+U(L+1,K))
+         VTMP=0.5*(V(L,K)+V(LNC(L),K))
+         UUUMAX=MAX(UUUMAX,UTMP)
+         UUUMIN=MIN(UUUMIN,UTMP)
+         VVVMAX=MAX(VVVMAX,UTMP)
+         VVVMIN=MIN(VVVMIN,VTMP)
+        ENDDO
+        ENDDO
+      ENDIF
+C
+      IF(ISDMPW.GE.1)THEN
+        DO K=1,KC
+        DO L=2,LA
+         WTMP=0.5*(W(L,K)+W(L,K-1))
+         WWWMAX=MAX(WWWMAX,WTMP)
+         WWWMIN=MIN(WWWMIN,WTMP)
+        ENDDO
+        ENDDO
+      ENDIF
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(1).GE.1)THEN
+        DO K=1,KC
+        DO L=2,LA
+         SALMAX=MAX(SALMAX,SAL(L,K))
+         SALMIN=MIN(SALMIN,SAL(L,K))
+        ENDDO
+        ENDDO
+      ENDIF
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(2).GE.1)THEN
+        DO K=1,KC
+        DO L=2,LA
+         TEMMAX=MAX(TEMMAX,TEM(L,K))
+         TEMMIN=MIN(TEMMIN,TEM(L,K))
+        ENDDO
+        ENDDO
+      ENDIF
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(3).GE.1)THEN
+        DO K=1,KC
+        DO L=2,LA
+         DYEMAX=MAX(DYEMAX,DYE(L,K))
+         DYEMIN=MIN(DYEMIN,DYE(L,K))
+        ENDDO
+        ENDDO
+      ENDIF
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(6).GE.1)THEN
+        DO K=1,KC
+        DO L=2,LA
+         SDWMAX=MAX(SDWMAX,SEDT(L,K))
+         SDWMIN=MIN(SDWMIN,SEDT(L,K))
+        ENDDO
+        ENDDO
+      ENDIF
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(7).GE.1)THEN
+        DO K=1,KC
+        DO L=2,LA
+         SNWMAX=MAX(SNWMAX,SNDT(L,K))
+         SNWMIN=MIN(SNWMIN,SNDT(L,K))
+        ENDDO
+        ENDDO
+      ENDIF
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(5).GE.1)THEN
+        DO NT=1,NTOX
+        DO K=1,KC
+        DO L=2,LA
+         TXWMAX(NT)=MAX(TXWMAX(NT),TOX(L,K,NT))
+         TXWMIN(NT)=MIN(TXWMIN(NT),TOX(L,K,NT))
+        ENDDO
+        ENDDO
+        ENDDO
+      ENDIF
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(6).GE.1)THEN
+        DO L=2,LA
+         SDBMAX=MAX(SDBMAX,SEDBT(L,KBT(L)))
+         SDBMIN=MIN(SDBMIN,SEDBT(L,KBT(L)))
+        ENDDO
+      ENDIF
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(7).GE.1)THEN
+        DO L=2,LA
+         SNBMAX=MAX(SNBMAX,SNDBT(L,KBT(L)))
+         SNBMIN=MIN(SNBMIN,SNDBT(L,KBT(L)))
+        ENDDO
+      ENDIF
+C
+      IF(ISDMPT.GE.1)THEN
+      IF(ISTRAN(7).GE.1.OR.ISTRAN(6).GE.1)THEN
+        DO L=2,LA
+         BDHMAX=MAX(BDHMAX,VOLBW2(L,KBT(L)))
+         BDHMIN=MIN(BDHMIN,VOLBW2(L,KBT(L)))
+        ENDDO
+      ENDIF
+      ENDIF
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(5).GE.1)THEN
+        DO NT=1,NTOX
+        DO L=2,LA
+         TXBMAX(NT)=MAX(TXBMAX(NT),TOXB(L,KBT(L),NT))
+         TXBMIN(NT)=MIN(TXBMIN(NT),TOXB(L,KBT(L),NT))
+        ENDDO
+        ENDDO
+      ENDIF
+C
+C **  WRITE ARRAYS
+C
+      IF(ISDUMP.EQ.1) RSCALE=65535.
+      IF(ISDUMP.EQ.2) RSCALE=65535.
+C
+C **  WATER SURFACE ELEVATION
+C
+      IF(ISDMPP.GE.1)THEN
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDSEL,POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDSEL,POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(SELMAX-SELMIN)
+        DO L=2,LA
+         DMPVALL(L-1)=SCALE*(GI*P(L)-SELMIN)
+         IDMPVALL(L-1)=NINT(DMPVALL(L-1))
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,SELMAX,SELMIN
+          WRITE(1,101)IDMPVALL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO L=2,LA
+           IB16VALL(L-1)=IDMPVALL(L-1)+IADJDMP
+          ENDDO
+          WRITE(1)TIME,SELMAX,SELMIN
+          WRITE(1)IB16VALL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  U VELOCITY COMPONENT
+C
+      IF(ISDMPU.GE.1)THEN
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDUUU,POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDUUU,POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(UUUMAX-UUUMIN)
+        DO K=1,KC
+        DO L=2,LA
+         UUUTMP=0.5*(U(L,K)+U(L+1,K))
+         DMPVAL(L-1,K)=SCALE*(UUUTMP-UUUMIN)
+         IDMPVAL(L-1,K)=NINT(DMPVAL(L-1,K))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,UUUMAX,UUUMIN
+          WRITE(1,101)IDMPVAL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+           IB16VAL(L-1,K)=IDMPVAL(L-1,K)+IADJDMP
+          ENDDO
+          ENDDO
+          WRITE(1)TIME,UUUMAX,UUUMIN
+          WRITE(1)IB16VAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  V VELOCITY COMPONENT
+C
+      IF(ISDMPU.GE.1)THEN
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDVVV,POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDVVV,POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(VVVMAX-VVVMIN)
+        DO K=1,KC
+        DO L=2,LA
+         VVVTMP=0.5*(V(L,K)+V(LNC(L),K))
+         DMPVAL(L-1,K)=SCALE*(VVVTMP-VVVMIN)
+         IDMPVAL(L-1,K)=NINT(DMPVAL(L-1,K))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,VVVMAX,VVVMIN
+          WRITE(1,101)IDMPVAL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+           IB16VAL(L-1,K)=IDMPVAL(L-1,K)+IADJDMP
+          ENDDO
+          ENDDO
+          WRITE(1)TIME,VVVMAX,VVVMIN
+          WRITE(1)IB16VAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  W VELOCITY COMPONENT
+C
+      IF(ISDMPW.GE.1)THEN
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDWWW,POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDWWW,POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(WWWMAX-WWWMIN)
+        DO K=1,KC
+        DO L=2,LA
+         WWWTMP=0.5*(W(L,K)+W(L,K-1))
+         DMPVAL(L-1,K)=SCALE*(WWWTMP-WWWMIN)
+         IDMPVAL(L-1,K)=NINT(DMPVAL(L-1,K))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,WWWMAX,WWWMIN
+          WRITE(1,101)IDMPVAL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+           IB16VAL(L-1,K)=IDMPVAL(L-1,K)+IADJDMP
+          ENDDO
+          ENDDO
+          WRITE(1)TIME,WWWMAX,WWWMIN
+          WRITE(1)IB16VAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  SALINITY
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(1).GE.1)THEN
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDSAL,POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDSAL,POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(SALMAX-SALMIN)
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=SCALE*(SAL(L,K)-SALMIN)
+         IDMPVAL(L-1,K)=NINT(DMPVAL(L-1,K))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,SALMAX,SALMIN
+          WRITE(1,101)IDMPVAL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+           IB16VAL(L-1,K)=IDMPVAL(L-1,K)+IADJDMP
+          ENDDO
+          ENDDO
+          WRITE(1)TIME,SALMAX,SALMIN
+          WRITE(1)IB16VAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  TEMPATURE
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(2).GE.1)THEN
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDTEM,POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDTEM,POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(TEMMAX-TEMMIN)
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=SCALE*(TEM(L,K)-TEMMIN)
+         IDMPVAL(L-1,K)=NINT(DMPVAL(L-1,K))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,TEMMAX,TEMMIN
+          WRITE(1,101)IDMPVAL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+           IB16VAL(L-1,K)=IDMPVAL(L-1,K)+IADJDMP
+          ENDDO
+          ENDDO
+          WRITE(1)TIME,TEMMAX,TEMMIN
+          WRITE(1)IB16VAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  DYE
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(3).GE.1)THEN
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDDYE,POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDDYE,POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(DYEMAX-DYEMIN)
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=SCALE*(DYE(L,K)-DYEMIN)
+         IDMPVAL(L-1,K)=NINT(DMPVAL(L-1,K))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,DYEMAX,DYEMIN
+          WRITE(1,101)IDMPVAL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+           IB16VAL(L-1,K)=IDMPVAL(L-1,K)+IADJDMP
+          ENDDO
+          ENDDO
+          WRITE(1)TIME,DYEMAX,DYEMIN
+          WRITE(1)IB16VAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  TOTAL COHESIVE SEDIMENT WATER COLUMN
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(6).GE.1)THEN
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDSDW,POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDSDW,POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(SDWMAX-SDWMIN)
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=SCALE*(SEDT(L,K)-SDWMIN)
+         IDMPVAL(L-1,K)=NINT(DMPVAL(L-1,K))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,SDWMAX,SDWMIN
+          WRITE(1,101)IDMPVAL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+           IB16VAL(L-1,K)=IDMPVAL(L-1,K)+IADJDMP
+          ENDDO
+          ENDDO
+          WRITE(1)TIME,SDWMAX,SDWMIN
+          WRITE(1)IB16VAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  TOTAL NONCOHESIVE SEDIMENT IN WATER COLUMN
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(7).GE.1)THEN
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDSNW,POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDSNW,POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(SNWMAX-SNWMIN)
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=SCALE*(SNDT(L,K)-SNWMIN)
+         IDMPVAL(L-1,K)=NINT(DMPVAL(L-1,K))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,SNWMAX,SNWMIN
+          WRITE(1,101)IDMPVAL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+           IB16VAL(L-1,K)=IDMPVAL(L-1,K)+IADJDMP
+          ENDDO
+          ENDDO
+          WRITE(1)TIME,SNWMAX,SNWMIN
+          WRITE(1)IB16VAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  TOTAL TOXIC CONTAMINANTS IN WATER COLUMN
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDTWT(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDTWT(NT),POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(TXWMAX(NT)-TXWMIN(NT))
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=SCALE*(TOX(L,K,NT)-TXWMIN(NT))
+         IDMPVAL(L-1,K)=NINT(DMPVAL(L-1,K))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,TXWMAX(NT),TXWMIN(NT)
+          WRITE(1,101)IDMPVAL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+           IB16VAL(L-1,K)=IDMPVAL(L-1,K)+IADJDMP
+          ENDDO
+          ENDDO
+          WRITE(1)TIME,TXWMAX(NT),TXWMIN(NT)
+          WRITE(1)IB16VAL
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  FREE DISSOLVED TOXIC CONTAMINANTS IN WATER COLUMN
+C
+      IF(ISDMPT.GE.2.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDTWF(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDTWF(NT),POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(TXWMAX(NT)-TXWMIN(NT))
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=SCALE*(TOX(L,K,NT)-TXWMIN(NT))
+         IDMPVAL(L-1,K)=NINT(DMPVAL(L-1,K))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,TXWMAX(NT),TXWMIN(NT)
+          WRITE(1,101)IDMPVAL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+           IB16VAL(L-1,K)=IDMPVAL(L-1,K)+IADJDMP
+          ENDDO
+          ENDDO
+          WRITE(1)TIME,TXWMAX(NT),TXWMIN(NT)
+          WRITE(1)IB16VAL
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C
+C **  COMPLEXED DISSOLVED TOXIC CONTAMINANTS IN WATER COLUMN
+C
+      IF(ISDMPT.GE.2.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDTWC(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDTWC(NT),POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(TXWMAX(NT)-TXWMIN(NT))
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=SCALE*(TOX(L,K,NT)-TXWMIN(NT))
+         IDMPVAL(L-1,K)=NINT(DMPVAL(L-1,K))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,TXWMAX(NT),TXWMIN(NT)
+          WRITE(1,101)IDMPVAL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+           IB16VAL(L-1,K)=IDMPVAL(L-1,K)+IADJDMP
+          ENDDO
+          ENDDO
+          WRITE(1)TIME,TXWMAX(NT),TXWMIN(NT)
+          WRITE(1)IB16VAL
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+
+C **  PARTICULATE TOXIC CONTAMINANT IN WATER COLUMN
+C
+      IF(ISDMPT.GE.2.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDTWP(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDTWP(NT),POSITION='APPEND',FORM='UNFORMATTED')
+C        SCALE=100.
+        SCALE=RSCALE
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=SCALE*TOXPFTW(L,K,NT)
+         IDMPVAL(L-1,K)=NINT(DMPVAL(L-1,K))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,R1,R0
+C          WRITE(1,102)IDMPVAL
+          WRITE(1,101)IDMPVAL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+C           IB08VAL(L-1,K)=IDMPVAL(L-1,K)
+           IB16VAL(L-1,K)=IDMPVAL(L-1,K)+IADJDMP
+          ENDDO
+          ENDDO
+          WRITE(1)TIME,R1,R0
+C          WRITE(1)IB08VAL
+          WRITE(1)IB16VAL
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  TOTAL COHESIVE SEDIMENT IN BED
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(6).GE.1)THEN
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDSDB,POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDSDB,POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(SDBMAX-SDBMIN)
+        DO L=2,LA
+         DMPVALL(L-1)=SCALE*(SEDBT(L,KBT(L))-SDBMIN)
+         IDMPVALL(L-1)=NINT(DMPVALL(L-1))
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,SDBMAX,SDBMIN
+          WRITE(1,101)IDMPVALL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO L=2,LA
+           IB16VALL(L-1)=IDMPVALL(L-1)+IADJDMP
+          ENDDO
+          WRITE(1)TIME,SDBMAX,SDBMIN
+          WRITE(1)IB16VALL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  TOTAL NONCOHESIVE SEDIMENT IN BED
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(7).GE.1)THEN
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDSNB,POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDSNB,POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(SNBMAX-SNBMIN)
+        DO L=2,LA
+         DMPVALL(L-1)=SCALE*(SNDBT(L,KBT(L))-SNBMIN)
+         IDMPVALL(L-1)=NINT(DMPVALL(L-1))
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,SNBMAX,SNBMIN
+          WRITE(1,101)IDMPVALL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO L=2,LA
+           IB16VALL(L-1)=IDMPVALL(L-1)+IADJDMP
+          ENDDO
+          WRITE(1)TIME,SNBMAX,SNBMIN
+          WRITE(1)IB16VALL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  THICKNESS OF SEDIMENT BED
+C
+      IF(ISDMPT.GE.1)THEN
+      IF(ISTRAN(6).GE.1.OR.ISTRAN(7).GE.1)THEN
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDBDH,POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDBDH,POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(BDHMAX-BDHMIN+1.E-10)
+        DO L=2,LA
+         DMPVALL(L-1)=SCALE*(VOLBW2(L,KBT(L))-BDHMIN)
+         IDMPVALL(L-1)=NINT(DMPVALL(L-1))
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,BDHMAX,BDHMIN
+          WRITE(1,101)IDMPVALL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO L=2,LA
+           IB16VALL(L-1)=IDMPVALL(L-1)+IADJDMP
+          ENDDO
+          WRITE(1)TIME,BDHMAX,BDHMIN
+          WRITE(1)IB16VALL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+      ENDIF
+C
+C **  TOTAL TOXIC CONTAMINANTS IN SEDIMENT BED
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDTBT(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDTBT(NT),POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(TXBMAX(NT)-TXBMIN(NT))
+        DO L=2,LA
+         DMPVALL(L-1)=SCALE*(TOXB(L,KBT(L),NT)-TXBMIN(NT))
+         IDMPVALL(L-1)=NINT(DMPVALL(L-1))
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,TXBMAX(NT),TXBMIN(NT)
+          WRITE(1,101)IDMPVALL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO L=2,LA
+           IB16VALL(L-1)=IDMPVALL(L-1)+IADJDMP
+          ENDDO
+          WRITE(1)TIME,TXBMAX(NT),TXBMIN(NT)
+          WRITE(1)IB16VALL
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  FREE DISSOLVED TOXIC CONTAMINANTS IN SEDIMENT BED
+C
+      IF(ISDMPT.GE.2.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDTBF(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDTBF(NT),POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(TXBMAX(NT)-TXBMIN(NT))
+        DO L=2,LA
+         DMPVALL(L-1)=SCALE*(TOXB(L,KBT(L),NT)-TXBMIN(NT))
+         IDMPVALL(L-1)=NINT(DMPVALL(L-1))
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,TXBMAX(NT),TXBMIN(NT)
+          WRITE(1,101)IDMPVALL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO L=2,LA
+           IB16VALL(L-1)=IDMPVALL(L-1)+IADJDMP
+          ENDDO
+          WRITE(1)TIME,TXBMAX(NT),TXBMIN(NT)
+          WRITE(1)IB16VALL
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  COMPLEXED DISSOLVED TOXIC CONTAMINANTS IN SEDIMENT BED
+C
+      IF(ISDMPT.GE.2.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDTBC(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDTBC(NT),POSITION='APPEND',FORM='UNFORMATTED')
+        SCALE=RSCALE/(TXBMAX(NT)-TXBMIN(NT))
+        DO L=2,LA
+         DMPVALL(L-1)=SCALE*(TOXB(L,KBT(L),NT)-TXBMIN(NT))
+         IDMPVALL(L-1)=NINT(DMPVALL(L-1))
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,TXBMAX(NT),TXBMIN(NT)
+          WRITE(1,101)IDMPVALL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO L=2,LA
+           IB16VALL(L-1)=IDMPVALL(L-1)+IADJDMP
+          ENDDO
+          WRITE(1)TIME,TXBMAX(NT),TXBMIN(NT)
+          WRITE(1)IB16VALL
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  PARTICULATE TOXIC CONTAMINANT IN SEDIMENT BED
+C
+      IF(ISDMPT.GE.2.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.1) OPEN(1,FILE=FNDTBP(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.2) 
+     &     OPEN(1,FILE=FNDTBP(NT),POSITION='APPEND',FORM='UNFORMATTED')
+C        SCALE=100.
+        SCALE=RSCALE
+        DO L=2,LA
+         DMPVALL(L-1)=SCALE*TOXPFTB(L,KB,NT)
+         IDMPVALL(L-1)=NINT(DMPVALL(L-1))
+        ENDDO
+        IF(ISDUMP.EQ.1)THEN
+          WRITE(1,*)TIME,R1,R0
+C          WRITE(1,102)IDMPVALL
+          WRITE(1,101)IDMPVALL
+        ENDIF
+        IF(ISDUMP.EQ.2)THEN
+          DO L=2,LA
+C           IB08VALL(L-1)=IDMPVALL(L-1)
+           IB16VALL(L-1)=IDMPVALL(L-1)+IADJDMP
+          ENDDO
+          WRITE(1)TIME,R1,R0
+C          WRITE(1)IB08VALL
+          WRITE(1)IB16VALL
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  IF(ISDUMP EQUAL 3 OR 4, WRITE FLOATING POINT
+C **  DUMP FILES
+C
+      IF(ISDUMP.GE.3)THEN
+C
+C **  WATER SURFACE ELEVATION
+C
+      IF(ISDMPP.GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDSEL,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDSEL,POSITION='APPEND',FORM='UNFORMATTED')
+        DO L=2,LA
+         DMPVALL(L-1)=GI*P(L)
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVALL
+          WRITE(1,111)(DMPVALL(L),L=1,LA-1)
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVALL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  U VELOCITY COMPONENT
+C
+      IF(ISDMPU.GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDUUU,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDUUU,POSITION='APPEND',FORM='UNFORMATTED')
+        IF(ISDMPU.EQ.1)THEN
+          DO K=1,KC
+          DO L=2,LA
+            DMPVAL(L-1,K)=0.5*(U(L,K)+U(L+1,K))
+          ENDDO
+          ENDDO
+        ENDIF
+        IF(ISDMPU.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+            DMPVAL(L-1,K)=DZC(K)*UHDY2(L,K)
+          ENDDO
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+c          IF(ISDMPU.EQ.1)THEN
+            DO L=1,LA-1
+              WRITE(1,111)(DMPVAL(L,K), K=1,KC)
+            ENDDO
+c	    ELSE
+c            DO L=2,LA
+c              WRITE(1,111)(U(L,K), K=1,KC)
+c            ENDDO
+c	    ENDIF
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  V VELOCITY COMPONENT
+C
+      IF(ISDMPU.GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDVVV,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDVVV,POSITION='APPEND',FORM='UNFORMATTED')
+        IF(ISDMPU.EQ.1)THEN
+          DO K=1,KC
+          DO L=2,LA
+            DMPVAL(L-1,K)=0.5*(U(L,K)+V(LNC(L),K))
+          ENDDO
+          ENDDO
+        ENDIF
+        IF(ISDMPU.EQ.2)THEN
+          DO K=1,KC
+          DO L=2,LA
+            DMPVAL(L-1,K)=DZC(K)*VHDX2(L,K)
+          ENDDO
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+C          IF(ISDMPU.EQ.1)THEN
+            DO L=1,LA-1
+              WRITE(1,111)(DMPVAL(L,K), K=1,KC)
+            ENDDO
+C	    ELSE
+C            DO L=2,LA
+C              WRITE(1,111)(V(L,K), K=1,KC)
+C            ENDDO
+C	    ENDIF
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  W VELOCITY COMPONENT
+C
+      IF(ISDMPW.GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDWWW,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDWWW,POSITION='APPEND',FORM='UNFORMATTED')
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=0.5*(W(L,K)+W(L,K-1))
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+          IF(ISDMPW.EQ.1)THEN
+            DO L=1,LA-1
+              WRITE(1,111)(DMPVAL(L,K), K=1,KC)
+            ENDDO
+	    ELSE
+            DO L=2,LA
+              WRITE(1,111)(W(L,K), K=1,KS)
+            ENDDO
+	    ENDIF
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  SALINITY
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(1).GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDSAL,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDSAL,POSITION='APPEND',FORM='UNFORMATTED')
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=SAL(L,K)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVAL(L,K), K=1,KC)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  TEMPERATURE
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(2).GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDTEM,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDTEM,POSITION='APPEND',FORM='UNFORMATTED')
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=TEM(L,K)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVAL(L,K), K=1,KC)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  DYE
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(3).GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDDYE,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDDYE,POSITION='APPEND',FORM='UNFORMATTED')
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=DYE(L,K)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVAL(L,K), K=1,KC)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  TOTAL COHESIVE SEDIMENT IN WATER COLUMN
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(6).GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDSDW,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDSDW,POSITION='APPEND',FORM='UNFORMATTED')
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=SEDT(L,K)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVAL(L,K), K=1,KC)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  TOTAL NONCOHESIVE SEDIMENT IN WATER COLUMN
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(7).GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDSNW,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDSNW,POSITION='APPEND',FORM='UNFORMATTED')
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=SNDT(L,K)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVAL(L,K), K=1,KC)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  TOTAL TOXIC CONTAMINANTS IN WATER COLUMN
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDTWT(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDTWT(NT),POSITION='APPEND',FORM='UNFORMATTED')
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=TOX(L,K,NT)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVAL(L,K), K=1,KC)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  FREE DISSOLVED TOXIC CONTAMINANTS IN WATER COLUMN
+C
+      IF(ISDMPT.GE.2.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDTWF(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDTWF(NT),POSITION='APPEND',FORM='UNFORMATTED')
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=TOXFDFB(L,K,NT)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVAL(L,K), K=1,KC)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  COMPLEXED DISSOLVED TOXIC CONTAMINANTS IN WATER COLUMN
+C
+      IF(ISDMPT.GE.2.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDTWC(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDTWC(NT),POSITION='APPEND',FORM='UNFORMATTED')
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=TOXCDFB(L,K,NT)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVAL(L,K), K=1,KC)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  PARTICULATE TOXIC CONTAMINANT IN WATER COLUMN
+C
+      IF(ISDMPT.GE.2.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDTWP(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDTWP(NT),POSITION='APPEND',FORM='UNFORMATTED')
+        DO K=1,KC
+        DO L=2,LA
+         DMPVAL(L-1,K)=TOXPFTW(L,K,NT)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVAL(L,K), K=1,KC)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  TOTAL COHESIVE SEDIMENT IN BED
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(6).GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDSDB,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDSDB,POSITION='APPEND',FORM='UNFORMATTED')
+C        DO L=2,LA
+C         DMPVALL(L-1)=SEDBT(L,KBT(L))
+C        ENDDO
+        DO K=1,KB
+        DO L=2,LA
+         DMPVALB(L-1,K)=SEDBT(L,K)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVALB(L,K), K=1,KB)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVALB
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  TOTAL NONCOHESIVE SEDIMENT IN BED
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(7).GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDSNB,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDSNB,POSITION='APPEND',FORM='UNFORMATTED')
+C        DO L=2,LA
+C         DMPVALL(L-1)=SNDBT(L,KBT(L))
+C        ENDDO
+        DO K=1,KB
+        DO L=2,LA
+         DMPVALB(L-1,K)=SNDBT(L,K)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVALB(L,K), K=1,KB)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVALB
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  THICKNESS OF SEDIMENT BED
+C
+      IF(ISDMPT.GE.1)THEN
+      IF(ISTRAN(6).GE.1.OR.ISTRAN(7).GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDBDH,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDBDH,POSITION='APPEND',FORM='UNFORMATTED')
+C        DO L=2,LA
+C         DMPVALL(L-1)=VOLBW2(L,KB)
+C        ENDDO
+        DO K=1,KB
+        DO L=2,LA
+         DMPVALB(L-1,K)=HBED(L,K)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVALB(L,K), K=1,KB)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVALB
+        ENDIF
+        CLOSE(1)
+      ENDIF
+      ENDIF
+C
+C **  TOTAL TOXIC CONTAMINANTS IN SEDIMENT BED
+C
+      IF(ISDMPT.GE.1.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDTBT(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDTBT(NT),POSITION='APPEND',FORM='UNFORMATTED')
+C        DO L=2,LA
+C         DMPVALL(L-1)=TOXB(L,KB,NT)
+C        ENDDO
+        DO K=1,KB
+        DO L=2,LA
+         DMPVALB(L-1,K)=TOXB(L,K,NT)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVALB(L,K), K=1,KB)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVALB
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  FREE DISSOLVED TOXIC CONTAMINANTS IN SEDIMENT BED
+C
+      IF(ISDMPT.GE.2.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDTBF(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDTBF(NT),POSITION='APPEND',FORM='UNFORMATTED')
+C        DO L=2,LA
+C         DMPVALL(L-1)=TOXB(L,KB,NT)
+C        ENDDO
+        DO K=1,KB
+        DO L=2,LA
+         DMPVALB(L-1,K)=TOXFDFB(L,K,NT)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVALB(L,K), K=1,KB)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVALB
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  COMPLEXED DISSOLVED TOXIC CONTAMINANTS IN SEDIMENT BED
+C
+      IF(ISDMPT.GE.2.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDTBC(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDTBC(NT),POSITION='APPEND',FORM='UNFORMATTED')
+C        DO L=2,LA
+C         DMPVALL(L-1)=TOXB(L,KB,NT)
+C        ENDDO
+        DO K=1,KB
+        DO L=2,LA
+         DMPVALB(L-1,K)=TOXCDFB(L,K,NT)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVALB(L,K), K=1,KB)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVALB
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  PARTICULATE TOXIC CONTAMINANT IN SEDIMENT BED
+C
+      IF(ISDMPT.GE.2.AND.ISTRAN(5).GE.1)THEN
+      DO NT=1,NTOX
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDTBP(NT),POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDTBP(NT),POSITION='APPEND',FORM='UNFORMATTED')
+C        DO L=2,LA
+C         DMPVALL(L-1)=SCALE*TOXPFTB(L,KB,NT)
+C        ENDDO
+        DO K=1,KB
+        DO L=2,LA
+         DMPVALB(L-1,K)=TOXPFTB(L,K,NT)
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVALB(L,K), K=1,KB)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVALB
+        ENDIF
+        CLOSE(1)
+      ENDDO
+      ENDIF
+C
+C **  WATER QUALTIY 3D DISSOLVED OXYGEN
+C
+      IF(ISDMPQ.EQ.1.AND.ISTRAN(8).GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDQDO,POSITION='APPEND')
+        IF(ISDUMP.EQ.4) 
+     &     OPEN(1,FILE=FNDQDO,POSITION='APPEND',FORM='UNFORMATTED')
+        DO K=1,KC
+        DO L=2,LA
+          DMPVAL(L-1,K)=WQVO(L,K,19)*0.5
+C
+          TVAL1=1./(TEM(L,K)+273.15)
+          TVAL2=TVAL1*TVAL1
+          TVAL3=TVAL1*TVAL2
+          TVAL4=TVAL2*TVAL2
+          RLNSAT1=-139.3441+(1.575701E+5*TVAL1)-(6.642308E+7*TVAL2)
+     &                   +(1.2438E+10*TVAL3)-(8.621949E+11*TVAL4)
+          TVAR1S(L-1,K) = EXP(RLNSAT1)
+C
+        ENDDO
+        ENDDO
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+          DO L=1,LA-1
+            WRITE(1,111)(DMPVAL(L,K),K=1,KC),(TVAR1S(L,K),K=1,KC)
+          ENDDO
+        ENDIF
+        IF(ISDUMP.EQ.4)THEN
+          WRITE(1)TIME
+          WRITE(1)DMPVAL
+        ENDIF
+        CLOSE(1)
+      ENDIF
+C
+C **  WATER QUALTIY 2D ALL VARIABLES
+C
+      IF(ISDMPQ.EQ.2.AND.ISTRAN(8).GE.1)THEN
+        IF(ISDUMP.EQ.3) OPEN(1,FILE=FNDQAL,POSITION='APPEND')
+        K=1
+	  DO M=1,19
+	    DO L=2,LA
+            WQVO(L,K,M)=WQVO(L,K,M)*0.5
+          ENDDO
+	  ENDDO
+C
+        IF(ISDUMP.EQ.3)THEN
+          WRITE(1,*)TIME
+C          WRITE(1,111)DMPVAL
+          DO L=2,LA
+C
+          TVAL1=1./(TEM(L,K)+273.15)
+          TVAL2=TVAL1*TVAL1
+          TVAL3=TVAL1*TVAL2
+          TVAL4=TVAL2*TVAL2
+          RLNSAT1=-139.3441+(1.575701E+5*TVAL1)-(6.642308E+7*TVAL2)
+     &                   +(1.2438E+10*TVAL3)-(8.621949E+11*TVAL4)
+          TVAR1S(L,1) = EXP(RLNSAT1)
+c
+            WRITE(1,111)(WQVO(L,K,M),M=1,19),TVAR1S(L,1),
+     &                   WQVO(L,K,IDNOTRVA)
+          ENDDO
+        ENDIF
+	  DO M=1,19
+	    DO L=2,LA
+            WQVO(L,K,M)=2.*WQVO(L,K,M)
+          ENDDO
+	  ENDDO
+        CLOSE(1)
+      ENDIF
+C
+
+      ENDIF
+C
+C**********************************************************************C
+C
+C **  CHECK BY READING BINARY FILES
+C
+C      IF(ISDUMP.EQ.2)THEN
+C
+C      OPEN(2,FILE='DUMP.CHK')
+C      CLOSE(2,STATUS='DELETE')
+C      OPEN(2,FILE='DUMP.CHK')
+C
+C      IF(ISDMPT.GE.1.AND.ISTRAN(5).GE.1)THEN
+C        OPEN(1,FILE=FNDTPB(1),FORM='UNFORMATTED')
+C        READ(1)TIME,RMAX,RMIN
+C        READ(1)IB08VALL
+C        CLOSE(1)
+C        DO L=1,LC-2
+C         DMPVALL(L)=FLOAT(IB08VALL(L))/100.
+C        ENDDO
+C        WRITE(2,201)
+C        WRITE(2,205)TIME,RMAX,RMIN
+C        WRITE(2,205)DMPVALL
+C      ENDIF
+C
+C      IF(ISDMPT.GE.1.AND.ISTRAN(5).GE.1)THEN
+C        OPEN(1,FILE=FNDTPW(1),FORM='UNFORMATTED')
+C        READ(1)TIME,RMAX,RMIN
+C        READ(1)IB08VAL
+C        CLOSE(1)
+C        DO K=1,KC
+C        DO L=1,LC-2
+C         DMPVAL(L,K)=FLOAT(IB08VAL(L,K))/100.
+C        ENDDO
+C        ENDDO
+C        WRITE(2,202)
+C        WRITE(2,205)TIME,RMAX,RMIN
+C        WRITE(2,205)DMPVAL
+C      ENDIF
+C
+C      IF(ISDMPP.GE.1)THEN
+C        OPEN(1,FILE=FNDSEL,FORM='UNFORMATTED')
+C        READ(1)TIME,SELMAX,SELMIN
+C        SELMAX=SELMAX/GI
+C        SELMIN=SELMIN/GI
+C        READ(1)IB16VALL
+C        CLOSE(1)
+C        DO L=1,LC-2
+C         DMPVALL(L)=FLOAT(IB16VALL(L))
+C         DMPVALL(L)=DMPVALL(L)-FLOAT(IADJDMP)
+C        ENDDO
+C        TMPVAL=(SELMAX-SELMIN)/RSCALE
+C        DO L=1,LC-2
+C         DMPVALL(L)=TMPVAL*DMPVALL(L)+SELMIN
+C        ENDDO
+C        WRITE(2,203)
+C        WRITE(2,205)TIME,SELMAX,SELMIN
+C        WRITE(2,205)DMPVALL
+C      ENDIF
+C
+C      IF(ISDMPT.GE.1.AND.ISTRAN(1).GE.1)THEN
+C        OPEN(1,FILE=FNDSAL,FORM='UNFORMATTED')
+C        READ(1)TIME,SALMAX,SALMIN
+C        READ(1)IB16VAL
+C        CLOSE(1)
+C        DO K=1,KC
+C        DO L=1,LC-2
+C         DMPVAL(L,K)=FLOAT(IB16VAL(L,K))
+C         DMPVAL(L,K)=DMPVAL(L,K)-FLOAT(IADJDMP)
+C        ENDDO
+C        ENDDO
+C        TMPVAL=(SALMAX-SALMIN)/RSCALE
+C        DO K=1,KC
+C        DO L=1,LC-2
+C         DMPVAL(L,K)=TMPVAL*DMPVAL(L,K)+SALMIN
+C        ENDDO
+C        ENDDO
+C        WRITE(2,204)
+C        WRITE(2,205)TIME,SALMAX,SALMIN
+C        WRITE(2,205)DMPVAL
+C      ENDIF
+C
+C      CLOSE(2)
+C
+C      ENDIF
+C
+C**********************************************************************C
+C
+  100 FORMAT(A80)
+  101 FORMAT(8I6)
+  102 FORMAT(8I4)
+C  111 FORMAT(8E14.6)
+C  111 FORMAT(10E12.4)
+  111 FORMAT(25E14.6)
+  201 FORMAT(//,' CHECK 2D  8 BIT VARIABLE',/)
+  202 FORMAT(//,' CHECK 3D  8 BIT VARIABLE',/)
+  203 FORMAT(//,' CHECK 2D 16 BIT VARIABLE',/)
+  204 FORMAT(//,' CHECK 3D 16 BIT VARIABLE',/)
+  205 FORMAT(8F8.2)
+C
+C**********************************************************************C
+C
+      RETURN
+      END

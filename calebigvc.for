@@ -1,0 +1,91 @@
+C
+C**********************************************************************C
+C**********************************************************************C
+C**********************************************************************C
+C
+      SUBROUTINE CALEBIGVC
+C
+C **  THIS SUBROUTINE IS PART OF  EFDC-FULL VERSION 1.0a 
+C
+C **  LAST MODIFIED BY JOHN HAMRICK ON 1 NOVEMBER 2001
+C
+C----------------------------------------------------------------------C
+C
+C CHANGE RECORD
+C DATE MODIFIED     BY                 DATE APPROVED    BY
+C
+C----------------------------------------------------------------------C
+C
+C **  CALEBI CALCULATES THE EXTERNAL BUOYANCY INTEGRALS
+C
+C**********************************************************************C
+C
+      INCLUDE 'EFDC.PAR'
+      INCLUDE 'EFDC.CMN'
+C     DIMENSION CH(LCM,KCM)
+C
+C**********************************************************************C
+C
+C      DO L=2,LA
+C      BI1(L)=0.
+C      BI2(L)=0.
+C      CH(L,KC)=DZC(KC)*B(L,KC)
+C      BE(L)=GP*DZC(KC)*B(L,KC)
+C      ENDDO
+C
+C      DO K=KS,1,-1
+C      DO L=2,LA
+C	 IF(K.GE.KGVCP(L))THEN
+C        CH(L,K)=CH(L,K+1)+DZC(K)*B(L,K)
+C        BE(L)=BE(L)+GP*DZC(K)*B(L,K)
+C	 ENDIF
+C      ENDDO
+C      ENDDO
+C
+C      DO K=1,KC
+C      DO L=2,LA
+C	 IF(K.GE.KGVCP(L))THEN
+C        BI1(L)=BI1(L)+GP*DZC(K)*(CH(L,K)-0.5*DZC(K)*B(L,K))
+C        BI2(L)=BI2(L)+GP*DZC(K)*(CH(L,K)+Z(K-1)*B(L,K))
+C	 ENDIF
+C      ENDDO
+C      ENDDO
+C
+      DO K=1,KC
+      DO L=2,LA
+      BI1GVC(L,K)=0.
+      BI2GVC(L,K)=0.
+      BEGVC(L,K)=0.0
+      ENDDO
+      ENDDO
+c
+      DO L=2,LA
+      CH(L,KC)=DZC(KC)*B(L,KC)
+      BEGVC(L,KC)=GP*DZC(KC)*B(L,KC)
+      ENDDO
+C
+      DO K=KS,1,-1
+      DO L=2,LA
+	IF(K.GE.KGVCP(L))THEN
+        CH(L,K)=CH(L,K+1)+DZC(K)*B(L,K)
+        BEGVC(L,K)=BEGVC(L,K+1)+GP*DZC(K)*B(L,K)
+	ENDIF
+      ENDDO
+      ENDDO
+C
+      DO KBOT=1,KC
+      DO K=KBOT,KC
+      DO L=2,LA
+	IF(K.GE.KGVCP(L))THEN
+        BI1GVC(L,KBOT)=BI1GVC(L,KBOT)
+     &        +GP*DZC(K)*(CH(L,K)-0.5*DZC(K)*B(L,K))
+        BI2GVC(L,KBOT)=BI2GVC(L,KBOT)+GP*DZC(K)*(CH(L,K)+Z(K-1)*B(L,K))
+	ENDIF
+      ENDDO
+      ENDDO
+      ENDDO
+C
+C**********************************************************************C
+C
+      RETURN
+      END
