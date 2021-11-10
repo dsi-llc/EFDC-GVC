@@ -48,6 +48,14 @@ C
        CFLCAC(L,K)=0.
       ENDDO
       ENDDO
+
+      DO K=1,KC
+      DO L=2,LA
+        LUPU(L,K)=L
+        LUPV(L,K)=L
+        KUPW(L,K)=K
+      ENDDO
+      ENDDO
 C
 C**********************************************************************C
 C
@@ -1768,6 +1776,18 @@ C
        NCSPV(ITMP)=NCSPV(ITMP)+(NTSPTC/NPSPV(ITMP))
       ENDIF
       ENDDO
+C
+C
+C----------------------------------------------------------------------C
+C
+C **  WRITE EFDC EXPLORER FORMAT OUTPUT
+C
+      IF(ISSPH(8).EQ.1.OR.ISBEXP.EQ.1)THEN
+      IF(N.GE.NCSPH(8))THEN
+       CALL EE_LINKAGE(0)
+       NCSPH(8)=NCSPH(8)+(NTSPTC/NPSPH(8))
+      ENDIF
+      ENDIF
 C
 C**********************************************************************C
 C

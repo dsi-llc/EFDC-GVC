@@ -553,30 +553,30 @@ C#######################################################################
 C     HQI Change, 01/05/04, SO and RM
 C     Change to implement HQI Sed-flume analysis based critical shear 
 C     stress options
-        IF(IWRSP(1).EQ.99)THEN
-          DO K=1,KB
-            DO L=2,LA
-              TAURS(L,K)=CSEDTAUS(BDENBED(L,K),TAUR(1),VDRRSPO(1),
-     &                VDRBED(L,K),VDRBEDSED(L,K),IWRSP(1),L)
-              TAURB(L,K)=1.0E6
+CJH        IF(IWRSP(1).EQ.99)THEN
+CJH          DO K=1,KB
+CJH            DO L=2,LA
+CJH              TAURS(L,K)=CSEDTAUS(BDENBED(L,K),TAUR(1),VDRRSPO(1),
+CJH     &                VDRBED(L,K),VDRBEDSED(L,K),IWRSP(1),L)
+CJH              TAURB(L,K)=1.0E6
 C     HQI change to implement spatially varying coefficient and exponent
 C     in resuspension formulation based on Ed G analysis of Sed-flume data
 C     RM 12/11/03
 c             WRSPS(L,K)=WRSPO(1)
-              if(L.LE.265) then  ! Woods Pond
-                 WRSPS(L,K) = 7.20
-              else               ! North of Woods Pond
-                 WRSPS(L,K) = 12.8
-              endif
-              WRSPB(L,K)=0.0
-            ENDDO
-          ENDDO
-        ENDIF
-        IF(IWRSP(1).EQ.999)THEN
-          DO K=1,KB
-            DO L=2,LA
-              TAURS(L,K)=TAUCRCOH(L,K)
-              TAURB(L,K)=1.0E6
+CJH              if(L.LE.265) then  ! Woods Pond
+CJH                 WRSPS(L,K) = 7.20
+CJH              else               ! North of Woods Pond
+CJH                WRSPS(L,K) = 12.8
+CJH              endif
+CJH              WRSPB(L,K)=0.0
+CJH            ENDDO
+CJH          ENDDO
+CJH        ENDIF
+CJH        IF(IWRSP(1).EQ.999)THEN
+CJH          DO K=1,KB
+CJH            DO L=2,LA
+CJH              TAURS(L,K)=TAUCRCOH(L,K)
+CJH              TAURB(L,K)=1.0E6
 C     HQI change to implement spatially varying coefficient and exponent
 C     in resuspension formulation based on Ed G analysis of Sed-flume data
 C     RM 12/11/03
@@ -598,18 +598,16 @@ c             ELSE
 c               WRSPS(L,K) = 7.78   ! North of (All of 5C + Woods Pond)
 c             END IF
 cSO 05/14/04
-CJMH050305              IF ( L.LE.2042 ) THEN 
-CJMH050305                WRSPS(L,K) = 9.88   ! All of 5C + Woods Pond
-CJMH050305              ELSE
-CJMH050305                WRSPS(L,K) = 6.98   ! North of (All of 5C + Woods Pond)
-CJMH050305              END IF
-CJMH050305
-              WRSPS(L,K)=WRSPO(1)
-CJMH050305
-              WRSPB(L,K)=0.0
-            ENDDO
-          ENDDO
-        ENDIF
+CJH              IF ( L.LE.2042 ) THEN 
+CJH                WRSPS(L,K) = 9.88   ! All of 5C + Woods Pond
+CJH              ELSE
+CJH                WRSPS(L,K) = 6.98   ! North of (All of 5C + Woods Pond)
+CJH              END IF
+CJH
+CJH              WRSPB(L,K)=0.0
+CJH            ENDDO
+CJH          ENDDO
+CJH        ENDIF
 C#######################################################################
 C
         DO L=2,LA
@@ -1033,7 +1031,10 @@ C         TVAR3S(L)=0.375E+6*HP(L)*QCELLCTR(L)
 C HAMRICK CORRECTED 052504
          TMPVAL=1./(COEFTSBL*VISMUDST)
          TVAR3S(L)=TMPVAL*HP(L)*QCELLCTR(L)
-         TVAR3N(L)=SEDDIAGS(L,KBT(L))*HPI(L)
+         
+          RSKSDD50=3.
+          TVAR3N(L)=RSKSDD50*SEDDIAGS(L,KBT(L))*HPI(L)
+	   
 	   HGDH(L)=0.0
          ENDIF
        ENDDO
@@ -1303,6 +1304,22 @@ C
 C
       ENDIF
 C
+
+
+C
+C  LIMIT GRAIN STRESSES RELATIVE TO TOTAL STRESS
+C
+      DO L=2,LA 
+        TAUBSED(L)=MIN(TAUBSED(L),TAUB(L))
+        TAUBSND(L)=MIN(TAUBSND(L),TAUB(L))
+	ENDDO
+c
+      DO L=2,LA 
+        IF(TAUBSED(L).LT.0.0) TAUBSED(L)=TAUB(L)
+        IF(TAUBSND(L).LT.0.0) TAUBSND(L)=TAUB(L)
+	ENDDO
+
+C
 C----------------------------------------------------------------------C
 C
   869 FORMAT(' I,J,HGDH = ',2I5,F10.3)
@@ -1427,15 +1444,17 @@ C
         DO L=2,LA
 	    KTOPTP=KBT(L)
 	    KTOPM1=KBT(L)-1
-          SEDFPA(L,NS)=VFRBED(L,KTOPM1,NS)*MAX(QSBDTOP(L),0.)
-     &                +VFRBED(L,KTOPTP,NS)*MIN(QSBDTOP(L),0.)
-          QSSDPA(L)=QSSDPA(L)+SEDFPA(L,NS)
-          QWATPA(L)=QWATPA(L)+VDRBED(L,KTOPM1)*MAX(SEDFPA(L,NS),0.)		  
-     &                       +VDRBED(L,KTOPTP)*MIN(SEDFPA(L,NS),0.)
-          SEDFPA(L,NS)=DSEDGMMI*SEDFPA(L,NS)
-	    SEDB(L,KTOPTP,NS)=SEDB(L,KTOPTP,NS)+DELT*SEDFPA(L,NS)
-	    SEDB(L,KTOPM1,NS)=SEDB(L,KTOPM1,NS)-DELT*SEDFPA(L,NS)
-c	    SESNFP(L)=SESNFP(L)+SEDFPA(L,NS)
+          IF(KTOPM1.GT.0)THEN
+            SEDFPA(L,NS)=VFRBED(L,KTOPM1,NS)*MAX(QSBDTOP(L),0.)
+     &                  +VFRBED(L,KTOPTP,NS)*MIN(QSBDTOP(L),0.)
+            QSSDPA(L)=QSSDPA(L)+SEDFPA(L,NS)
+            QWATPA(L)=QWATPA(L)+VDRBED(L,KTOPM1)*MAX(SEDFPA(L,NS),0.)		  
+     &                         +VDRBED(L,KTOPTP)*MIN(SEDFPA(L,NS),0.)
+            SEDFPA(L,NS)=DSEDGMMI*SEDFPA(L,NS)
+	      SEDB(L,KTOPTP,NS)=SEDB(L,KTOPTP,NS)+DELT*SEDFPA(L,NS)
+	      SEDB(L,KTOPM1,NS)=SEDB(L,KTOPM1,NS)-DELT*SEDFPA(L,NS)
+c	      SESNFP(L)=SESNFP(L)+SEDFPA(L,NS)
+          ENDIF
 	  ENDDO
 	ENDDO
 C		  
@@ -1446,15 +1465,17 @@ C
         DO L=2,LA
 	    KTOPTP=KBT(L)
 	    KTOPM1=KBT(L)-1
-          SNDFPA(L,NX)=VFRBED(L,KTOPM1,NS)*MAX(QSBDTOP(L),0.)
-     &                +VFRBED(L,KTOPTP,NS)*MIN(QSBDTOP(L),0.)
-          QSSDPA(L)=QSSDPA(L)+SNDFPA(L,NX)
-          QWATPA(L)=QWATPA(L)+VDRBED(L,KTOPM1)*MAX(SNDFPA(L,NX),0.)		  
+          IF(KTOPM1.GT.0)THEN
+            SNDFPA(L,NX)=VFRBED(L,KTOPM1,NS)*MAX(QSBDTOP(L),0.)
+     &                  +VFRBED(L,KTOPTP,NS)*MIN(QSBDTOP(L),0.)
+            QSSDPA(L)=QSSDPA(L)+SNDFPA(L,NX)
+            QWATPA(L)=QWATPA(L)+VDRBED(L,KTOPM1)*MAX(SNDFPA(L,NX),0.)		  
      &                       +VDRBED(L,KTOPTP)*MIN(SNDFPA(L,NX),0.)
-          SNDFPA(L,NX)=DSEDGMMI*SNDFPA(L,NX)
-	    SNDB(L,KTOPTP,NX)=SNDB(L,KTOPTP,NX)+DELT*SNDFPA(L,NX)
-	    SNDB(L,KTOPM1,NX)=SNDB(L,KTOPM1,NX)-DELT*SNDFPA(L,NX)
-c	    SESNFP(L)=SESNFP(L)+SNDFPA(L,NX)
+            SNDFPA(L,NX)=DSEDGMMI*SNDFPA(L,NX)
+	      SNDB(L,KTOPTP,NX)=SNDB(L,KTOPTP,NX)+DELT*SNDFPA(L,NX)
+	      SNDB(L,KTOPM1,NX)=SNDB(L,KTOPM1,NX)-DELT*SNDFPA(L,NX)
+c	      SESNFP(L)=SESNFP(L)+SNDFPA(L,NX)
+          ENDIF
 	  ENDDO
 	ENDDO
 C
@@ -1498,6 +1519,7 @@ C
 C
       DO L=2,LA
         K=KBT(L)-1
+        IF(K>0)THEN
         HBED1(L,K)=HBED(L,K)
         VDRBED1(L,K)=VDRBED(L,K)
         HBED(L,K)=HBED(L,K)-DELT*(QSSDPA(L)+QWATPA(L))
@@ -1508,6 +1530,7 @@ C
         ELSE
           VDRBED(L,K)=0.0
         END IF
+        ENDIF
       ENDDO
 C
       ENDIF

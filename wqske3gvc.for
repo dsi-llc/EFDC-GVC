@@ -505,8 +505,8 @@ C
      &              + WQKHNM/(RNH4NO3(L)+ 1.E-18)) * WQTTM
 
         ENDIF
-        WQNIT(L) = O2WQ(L) * WQTDNIT(IWQT(L)) /
-     *      ( (WQKHNDO+O2WQ(L)) * (WQKHNN+RNH4WQ(L)) + 1.E-18)
+        WQNIT(L) = WQTDNIT(IWQT(L)) * O2WQ(L) / (WQKHNDO + O2WQ(L)       ! *** DSI
+     &        + 1.E-18) * RNH4WQ(L) / (WQKHNN + RNH4WQ(L) + 1.E-18)      ! *** DSI
 C
        ENDDO
 C
@@ -676,13 +676,6 @@ C
         ENDIF
 C
        ENDDO
-C
-      IF(ISICE.EQ.1)THEN
-        DO L=LF,LL
-          WQP19(L) = (1.-RICECOVL(L))*WQP19(L)
-          WQKRDOS(L) = (1.-RICECOVL(L))*WQKRDOS(L)
-        ENDDO
-	ENDIF
 C
 C----------------------------------------------------------------------C
 C

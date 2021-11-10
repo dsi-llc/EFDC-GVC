@@ -1246,6 +1246,12 @@ C
      &       +U(L,1)*U(L,1)))*U(L,1)
         TBY(L)=(AVCON1*HVI(L)+STBY(L)*SQRT(UV(L)*UV(L)
      &       +V(L,1)*V(L,1)))*V(L,1)
+
+     
+          ! *** HARDWIRED FOR ENERGY TEST.  DSI, SCJ
+          !TBX(L) = 20.035/1024.
+          !TBY(L) = 0.
+
        ENDDO
 C
 C**********************************************************************C
@@ -1978,7 +1984,7 @@ C **  WRITE EFDC EXPLORER FORMAT OUTPUT
 C
       IF(ISSPH(8).EQ.1.OR.ISBEXP.EQ.1)THEN
       IF(N.GE.NCSPH(8))THEN
-       CALL EEXPOUT(0)
+       CALL EE_LINKAGE(0)
        NCSPH(8)=NCSPH(8)+(NTSPTC/NPSPH(8))
       ENDIF
       ENDIF

@@ -309,8 +309,13 @@ C
         DO M=1,IWQTS
           READ(1,*) II,JJ,(ICWQTS(NW,M),NW=1,13)
           WRITE(2,*) II,JJ,(ICWQTS(NW,M),NW=1,13)
-          READ(1,*) (ICWQTS(NW,M),NW=14,NTSWQV),ICWQTS(IDNOTRVA,M)
-          WRITE(2,*) (ICWQTS(NW,M),NW=14,NTSWQV),ICWQTS(IDNOTRVA,M)
+          if(IDNOTRVA>0)then
+            READ(1,*) (ICWQTS(NW,M),NW=14,NTSWQV),ICWQTS(IDNOTRVA,M)
+            WRITE(2,*) (ICWQTS(NW,M),NW=14,NTSWQV),ICWQTS(IDNOTRVA,M)
+          else
+            READ(1,*) (ICWQTS(NW,M),NW=14,NTSWQV),tmp
+            WRITE(2,*) (ICWQTS(NW,M),NW=14,NTSWQV),tmp
+          endif
           IF(IJCT(II,JJ).LT.1 .OR. IJCT(II,JJ).GT.8)THEN
             WRITE(2,86)  II,JJ,M
             WRITE(2,80)'ERROR!! INVALID (I,J): TIME-SERIES LOCATION'
@@ -1171,8 +1176,13 @@ C
       WRITE(2,*) (WQV(1,1,NW), NW=1,6)
       READ(1,*) (WQV(1,1,NW), NW=7,13)
       WRITE(2,*) (WQV(1,1,NW), NW=7,13)
-      READ(1,*) (WQV(1,1,NW), NW=14,NWQV),WQV(1,1,IDNOTRVA),WQMCMIN
-      WRITE(2,*) (WQV(1,1,NW), NW=14,NWQV),WQV(1,1,IDNOTRVA),WQMCMIN
+      if(IDNOTRVA>0)then
+        READ(1,*) (WQV(1,1,NW), NW=14,NWQV),WQV(1,1,IDNOTRVA),WQMCMIN
+        WRITE(2,*) (WQV(1,1,NW), NW=14,NWQV),WQV(1,1,IDNOTRVA),WQMCMIN
+      else
+        READ(1,*) (WQV(1,1,NW), NW=14,NWQV),tmp,WQMCMIN
+        WRITE(2,*) (WQV(1,1,NW), NW=14,NWQV),tmp,WQMCMIN
+      endif
       IF(IWQICI.NE.1)THEN
         WRITE(2,999)
         WRITE(2,90) TITLE(1)

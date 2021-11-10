@@ -452,8 +452,8 @@ C
      &              + WQKHNM/(RNH4NO3+ 1.E-18)) * WQTTM
 
         ENDIF
-          WQNIT(L) = O2WQ * WQTDNIT(IWQT(L)) /
-     *      ( (WQKHNDO+O2WQ) * (WQKHNN+RNH4WQ) + 1.E-18)
+        WQNIT(L) = WQTDNIT(IWQT(L))*WQVO(L,K,19)/(WQKHNDO+WQVO(L,K,19)      ! DSI
+     &       + 1.E-18) * WQVO(L,K,14) / (WQKHNN + WQVO(L,K,14) + 1.E-18)
 C
 C16-17 SILICA
 C

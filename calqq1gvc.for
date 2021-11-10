@@ -62,11 +62,11 @@ C
         FUHU(L,K)=0.
         FUHV(L,K)=0.
         FVHU(L,K)=0.
-        FUHV(L,K)=0.
+        FVHV(L,K)=0.           ! *** DSI bug fix
         UUU(L,K)=0.
         VVV(L,K)=0.
-        DU(L,K)=0.
-        DV(L,K)=0.
+        !DU(L,K)=0.
+        !DV(L,K)=0.
        ENDDO
       ENDDO
 C
@@ -538,7 +538,7 @@ C
       ENDDO
 C
       DO L=2,LA
-	IF(LGVCP(L,K))THEN
+	IF(LGVCP(L,1))THEN
         CLQTMP=-DELT*CDZKK(1)*AQ(L,1)*GVCSCLPI(L)*HPI(L)
         CUQTMP=-DELT*CDZKKP(1)*AQ(L,2)*GVCSCLPI(L)*HPI(L)
         CMQTMP=1.-CLQTMP-CUQTMP
@@ -570,8 +570,19 @@ C
          CMQLTMP=1.-CLQTMP-CUQTMP
      &       +DELT*(SQRT(QQ(L,K))/(CTURBB1(L,K)*DML(L,K)*HP(L)))*(1.
      &       +CTE4*DML(L,K)*DML(L,K)*FPROXGVC(L,K))
-         EQ=1./(CMQTMP-CLQTMP*CU1(L,K-1))
-         EQL=1./(CMQLTMP-CLQTMP*CU2(L,K-1))
+         IF( ABS(CMQTMP-CLQTMP*CU1(L,K-1)) > 1.E-8 )THEN    ! DSI 2014-07  ADDED TO PREVENT SINGLE PRECISION DIVIDE BY ZERO
+           EQ=1./(CMQTMP-CLQTMP*CU1(L,K-1))
+           !CLQTMP=0.    delme - gave some interesting results!
+         ELSE
+           EQ=1.
+           CLQTMP=0.
+         ENDIF
+         IF( ABS(CMQLTMP-CLQTMP*CU2(L,K-1)) > 1.E-8 )THEN   ! DSI 2014-07  ADDED TO PREVENT SINGLE PRECISION DIVIDE BY ZERO
+           EQL=1./(CMQLTMP-CLQTMP*CU2(L,K-1))
+         ELSE
+           EQL=1.
+           CLQTMP=0.
+         ENDIF
          CU1(L,K)=CUQTMP*EQ
          CU2(L,K)=CUQTMP*EQL     
 C        IF(EQ.0) PAUSE

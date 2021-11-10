@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VisualStudioProject ProjectCreator="Intel Fortran" Keyword="Console Application" Version="11.0" ProjectIdGuid="{CC5BD254-970A-45E8-9827-200363030C39}">
+	<Platforms>
+		<Platform Name="Win32"/>
+		<Platform Name="x64"/></Platforms>
+	<Configurations>
+		<Configuration Name="Debug32|Win32">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" WarnInterfaces="true" FloatingPointExceptionHandling="fpe0" FloatingPointModel="source" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\$(ProjectName)_D.exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Release32|Win32">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Optimization="optimizeFull" OmitFramePointers="false" EnableEnhancedInstructionSet="codeArchSSE3" FloatingPointExceptionHandling="fpe0" FloatingPointModel="source" FloatingPointSpeculation="fpSpeculationSafe" Traceback="true"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Debug64|Win32">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Optimization="optimizeFull" OmitFramePointers="false" EnableEnhancedInstructionSet="codeArchSSE3" FloatingPointExceptionHandling="fpe0" FloatingPointModel="source" FloatingPointSpeculation="fpSpeculationSafe" Traceback="true"/>
+				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\$(ProjectName)_D64.exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Release64|Win32">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Optimization="optimizeFull" OmitFramePointers="false" EnableEnhancedInstructionSet="codeArchSSE3" FloatingPointExceptionHandling="fpe0" FloatingPointModel="source" FloatingPointSpeculation="fpSpeculationSafe" Traceback="true"/>
+				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\$(ProjectName)_64.exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Debug32|x64" OutputDirectory="$(ConfigurationName)" IntermediateDirectory="$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFLinkerTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Release32|x64" OutputDirectory="$(ConfigurationName)" IntermediateDirectory="$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFLinkerTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Debug64|x64" OutputDirectory="$(ConfigurationName)" IntermediateDirectory="$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Optimization="optimizeDisabled" IntegerKIND="integerKIND8" RealKIND="realKIND8"/>
+				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\$(ProjectName)_64D.exe" SuppressStartupBanner="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Release64|x64" OutputDirectory="$(ConfigurationName)" IntermediateDirectory="$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" IntegerKIND="integerKIND8" RealKIND="realKIND8" Traceback="true"/>
+				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\$(ProjectName)_64.exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration></Configurations>
+	<Files>
+		<Filter Name="Header Files" Filter="fi;fd"/>
+		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+		<File RelativePath=".\EFDC.CMN"/>
+		<File RelativePath=".\EFDC.PAR"/></Filter>
+		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
+		<File RelativePath=".\aaefdc.for"/>
+		<File RelativePath=".\acon.for"/>
+		<File RelativePath=".\adjmmt.for"/>
+		<File RelativePath=".\adtoxdp.for"/>
+		<File RelativePath=".\ainit.for"/>
+		<File RelativePath=".\asolve.for"/>
+		<File RelativePath=".\atimes.for"/>
+		<File RelativePath=".\bal2t1.for"/>
+		<File RelativePath=".\bal2t2.for"/>
+		<File RelativePath=".\bal2t3.for"/>
+		<File RelativePath=".\bal2t3a.for"/>
+		<File RelativePath=".\bal2t3b.for"/>
+		<File RelativePath=".\bal2t4.for"/>
+		<File RelativePath=".\bal2t5.for"/>
+		<File RelativePath=".\bankerosed.for"/>
+		<File RelativePath=".\bedinit.for"/>
+		<File RelativePath=".\bedload.for"/>
+		<File RelativePath=".\bedplth.for"/>
+		<File RelativePath=".\budget1.for"/>
+		<File RelativePath=".\budget2.for"/>
+		<File RelativePath=".\budget3.for"/>
+		<File RelativePath=".\budget5.for"/>
+		<File RelativePath=".\calarea.for"/>
+		<File RelativePath=".\calavb.for"/>
+		<File RelativePath=".\calavb2.for"/>
+		<File RelativePath=".\calavbgvc.for"/>
+		<File RelativePath=".\calavbold.for"/>
+		<File RelativePath=".\calbal1.for"/>
+		<File RelativePath=".\calbal2.for"/>
+		<File RelativePath=".\calbal3.for"/>
+		<File RelativePath=".\calbal4.for"/>
+		<File RelativePath=".\calbal5.for"/>
+		<File RelativePath=".\calbed.for"/>
+		<File RelativePath=".\calbed9.for"/>
+		<File RelativePath=".\calblay.for"/>
+		<File RelativePath=".\calbuoy.for"/>
+		<File RelativePath=".\calconc.for"/>
+		<File RelativePath=".\calconcgvc.for"/>
+		<File RelativePath=".\calcser.for"/>
+		<File RelativePath=".\caldiff.for"/>
+		<File RelativePath=".\caldisp2.for"/>
+		<File RelativePath=".\caldisp3.for"/>
+		<File RelativePath=".\calebi.for"/>
+		<File RelativePath=".\calebigvc.for"/>
+		<File RelativePath=".\calexp.for"/>
+		<File RelativePath=".\calexp1.for"/>
+		<File RelativePath=".\calexp1d.for"/>
+		<File RelativePath=".\calexp2.for"/>
+		<File RelativePath=".\calexp2t.for"/>
+		<File RelativePath=".\calexp3.for"/>
+		<File RelativePath=".\calexp9.for"/>
+		<File RelativePath=".\calexpgvc.for"/>
+		<File RelativePath=".\calfqc.for"/>
+		<File RelativePath=".\calhdmf.for"/>
+		<File RelativePath=".\calheat.for"/>
+		<File RelativePath=".\calheatb.for"/>
+		<File RelativePath=".\calheatbgvc.for"/>
+		<File RelativePath=".\calheatgvc.for"/>
+		<File RelativePath=".\calhta.for"/>
+		<File RelativePath=".\calimp2t.for"/>
+		<File RelativePath=".\calmmt.for"/>
+		<File RelativePath=".\calpnhs.for"/>
+		<File RelativePath=".\calpser.for"/>
+		<File RelativePath=".\calpuv.for"/>
+		<File RelativePath=".\calpuv1d.for"/>
+		<File RelativePath=".\calpuv2.for"/>
+		<File RelativePath=".\calpuv2c.for"/>
+		<File RelativePath=".\calpuv2t.for"/>
+		<File RelativePath=".\calpuv3.for"/>
+		<File RelativePath=".\calpuv5.for"/>
+		<File RelativePath=".\calpuv6.for"/>
+		<File RelativePath=".\calpuv7.for"/>
+		<File RelativePath=".\calpuv8.for"/>
+		<File RelativePath=".\calpuv9.for"/>
+		<File RelativePath=".\calpuv9c.for"/>
+		<File RelativePath=".\calpuv9gvc.for"/>
+		<File RelativePath=".\calpuva.for"/>
+		<File RelativePath=".\calpuvb.for"/>
+		<File RelativePath=".\calpuvc.for"/>
+		<File RelativePath=".\calpuvd.for"/>
+		<File RelativePath=".\calpuve.for"/>
+		<File RelativePath=".\calpuvf.for"/>
+		<File RelativePath=".\calqq1.for"/>
+		<File RelativePath=".\calqq1gvc.for"/>
+		<File RelativePath=".\calqq1old.for"/>
+		<File RelativePath=".\calqq2.for"/>
+		<File RelativePath=".\calqq2t.for"/>
+		<File RelativePath=".\calqq2told.for"/>
+		<File RelativePath=".\calqvs.for"/>
+		<File RelativePath=".\calsed.for"/>
+		<File RelativePath=".\calsedHOUS.for"/>
+		<File RelativePath=".\calsft.for"/>
+		<File RelativePath=".\calsnd.for"/>
+		<File RelativePath=".\calstep.for"/>
+		<File RelativePath=".\calstepd.for"/>
+		<File RelativePath=".\caltbxy.for"/>
+		<File RelativePath=".\caltox.for"/>
+		<File RelativePath=".\caltoxb.for"/>
+		<File RelativePath=".\caltoxbJH.for"/>
+		<File RelativePath=".\caltran.for"/>
+		<File RelativePath=".\caltran1d.for"/>
+		<File RelativePath=".\caltrangvc.for"/>
+		<File RelativePath=".\caltrani.for"/>
+		<File RelativePath=".\caltranq.for"/>
+		<File RelativePath=".\caltrwq.for"/>
+		<File RelativePath=".\caltrwqgvc.for"/>
+		<File RelativePath=".\caltsxy.for"/>
+		<File RelativePath=".\caluvw.for"/>
+		<File RelativePath=".\caluvwgvc.for"/>
+		<File RelativePath=".\calvegser.for"/>
+		<File RelativePath=".\calwqc.for"/>
+		<File RelativePath=".\calwqcgvc.for"/>
+		<File RelativePath=".\cbalev1.for"/>
+		<File RelativePath=".\cbalev2.for"/>
+		<File RelativePath=".\cbalev3.for"/>
+		<File RelativePath=".\cbalev4.for"/>
+		<File RelativePath=".\cbalev5.for"/>
+		<File RelativePath=".\cbalod1.for"/>
+		<File RelativePath=".\cbalod2.for"/>
+		<File RelativePath=".\cbalod3.for"/>
+		<File RelativePath=".\cbalod4.for"/>
+		<File RelativePath=".\cbalod5.for"/>
+		<File RelativePath=".\cellmap.for"/>
+		<File RelativePath=".\cellmask.for"/>
+		<File RelativePath=".\ceqicm.for"/>
+		<File RelativePath=".\cgrad2.for"/>
+		<File RelativePath=".\cgrs.for"/>
+		<File RelativePath=".\congrad.for"/>
+		<File RelativePath=".\congradc.for"/>
+		<File RelativePath=".\cosexp.for"/>
+		<File RelativePath=".\costran.for"/>
+		<File RelativePath=".\costranw.for"/>
+		<File RelativePath=".\csedresb.for"/>
+		<File RelativePath=".\csedress.for"/>
+		<File RelativePath=".\csedset.for"/>
+		<File RelativePath=".\csedtaub.for"/>
+		<File RelativePath=".\csedtaus.for"/>
+		<File RelativePath=".\csedvis.for"/>
+		<File RelativePath=".\csndeqc.for"/>
+		<File RelativePath=".\csndset.for"/>
+		<File RelativePath=".\csndzeq.for"/>
+		<File RelativePath=".\cvmulad2.for"/>
+		<File RelativePath=".\depplt.for"/>
+		<File RelativePath=".\depsmth.for"/>
+		<File RelativePath=".\drifter.for"/>
+		<File RelativePath=".\dump.for"/>
+		<File RelativePath=".\ee_linkage.for"/>
+		<File RelativePath=".\fdstrse.for"/>
+		<File RelativePath=".\fhydcn.for"/>
+		<File RelativePath=".\filtran.for"/>
+		<File RelativePath=".\foodchain.for"/>
+		<File RelativePath=".\fprobdep.for"/>
+		<File RelativePath=".\fsbdld.for"/>
+		<File RelativePath=".\fsedmode.for"/>
+		<File RelativePath=".\fstrse.for"/>
+		<File RelativePath=".\funden.for"/>
+		<File RelativePath=".\fvcongrad.for"/>
+		<File RelativePath=".\fvmulad2.for"/>
+		<File RelativePath=".\glmres.for"/>
+		<File RelativePath=".\hdmt.for"/>
+		<File RelativePath=".\hdmt1d.for"/>
+		<File RelativePath=".\hdmt2t.for"/>
+		<File RelativePath=".\hdmtgvc.for"/>
+		<File RelativePath=".\hydout.for"/>
+		<File RelativePath=".\hydzero.for"/>
+		<File RelativePath=".\initbin.for"/>
+		<File RelativePath=".\initbin0.for"/>
+		<File RelativePath=".\initbin2.for"/>
+		<File RelativePath=".\initbin3.for"/>
+		<File RelativePath=".\initbin4.for"/>
+		<File RelativePath=".\input.f">
+			<FileConfiguration Name="Release32|Win32">
+				<Tool Name="VFFortranCompilerTool" Optimization="optimizeMinSpace"/></FileConfiguration>
+			<FileConfiguration Name="Release64|Win32">
+				<Tool Name="VFFortranCompilerTool" Optimization="optimizeMinSpace"/></FileConfiguration>
+			<FileConfiguration Name="Debug32|Win32">
+				<Tool Name="VFFortranCompilerTool" FloatingPointExceptionHandling="fpe0" FloatingPointModel="source"/></FileConfiguration>
+			<FileConfiguration Name="Debug64|Win32">
+				<Tool Name="VFFortranCompilerTool" Optimization="optimizeMinSpace"/></FileConfiguration></File>
+		<File RelativePath=".\jpefdc.for"/>
+		<File RelativePath=".\lagres.for"/>
+		<File RelativePath=".\linbcg.for"/>
+		<File RelativePath=".\lsqharm.for"/>
+		<File RelativePath=".\ltmt.for"/>
+		<File RelativePath=".\lubksb.for"/>
+		<File RelativePath=".\ludcmp.for"/>
+		<File RelativePath=".\lvelplth.for"/>
+		<File RelativePath=".\lvelpltv.for"/>
+		<File RelativePath=".\negdep.for"/>
+		<File RelativePath=".\negdepHOUS.for"/>
+		<File RelativePath=".\out3d.for"/>
+		<File RelativePath=".\output1.for"/>
+		<File RelativePath=".\output2.for"/>
+		<File RelativePath=".\partmix.for"/>
+		<File RelativePath=".\pplot.for"/>
+		<File RelativePath=".\puvdasm.for"/>
+		<File RelativePath=".\rcahq.for"/>
+		<File RelativePath=".\redkc.for"/>
+		<File RelativePath=".\relax.for"/>
+		<File RelativePath=".\relax2t.for"/>
+		<File RelativePath=".\relaxv.for"/>
+		<File RelativePath=".\restin1.for"/>
+		<File RelativePath=".\restin10.for"/>
+		<File RelativePath=".\restin2.for"/>
+		<File RelativePath=".\restmod.for"/>
+		<File RelativePath=".\restout.for"/>
+		<File RelativePath=".\restran.for"/>
+		<File RelativePath=".\rout3d.for"/>
+		<File RelativePath=".\rsalplth.for"/>
+		<File RelativePath=".\rsalpltv.for"/>
+		<File RelativePath=".\rsmici.for"/>
+		<File RelativePath=".\rsmrst.for"/>
+		<File RelativePath=".\rsurfplt.for"/>
+		<File RelativePath=".\rvelplth.for"/>
+		<File RelativePath=".\rvelpltv.for"/>
+		<File RelativePath=".\rwqagr.for"/>
+		<File RelativePath=".\rwqatm.for"/>
+		<File RelativePath=".\rwqben.for"/>
+		<File RelativePath=".\rwqben2.for"/>
+		<File RelativePath=".\rwqc1.for"/>
+		<File RelativePath=".\rwqcsr.for"/>
+		<File RelativePath=".\rwqici.for"/>
+		<File RelativePath=".\rwqpsl.for"/>
+		<File RelativePath=".\rwqrst.for"/>
+		<File RelativePath=".\rwqstl.for"/>
+		<File RelativePath=".\rwqsun.for"/>
+		<File RelativePath=".\salplth.for"/>
+		<File RelativePath=".\salpltv.for"/>
+		<File RelativePath=".\saltsmth.for"/>
+		<File RelativePath=".\secnds.for"/>
+		<File RelativePath=".\second.for"/>
+		<File RelativePath=".\sedflux.for"/>
+		<File RelativePath=".\seek.f90"/>
+		<File RelativePath=".\setbcs.for"/>
+		<File RelativePath=".\setfpocb.for"/>
+		<File RelativePath=".\setgvc.for"/>
+		<File RelativePath=".\setobc2t.for"/>
+		<File RelativePath=".\setshld.for"/>
+		<File RelativePath=".\setstvel.for"/>
+		<File RelativePath=".\showval1.for"/>
+		<File RelativePath=".\showval2.for"/>
+		<File RelativePath=".\showval3.for"/>
+		<File RelativePath=".\skipcomm.for"/>
+		<File RelativePath=".\sminit.for"/>
+		<File RelativePath=".\smlcfg.for"/>
+		<File RelativePath=".\smmbe.for"/>
+		<File RelativePath=".\smmbegvc.for"/>
+		<File RelativePath=".\smrin1.for"/>
+		<File RelativePath=".\snrm.for"/>
+		<File RelativePath=".\solvsmbe.for"/>
+		<File RelativePath=".\ssedtox.for"/>
+		<File RelativePath=".\ssedtoxHOUS.for"/>
+		<File RelativePath=".\subchan.for"/>
+		<File RelativePath=".\surfplt.for"/>
+		<File RelativePath=".\surfplte.for"/>
+		<File RelativePath=".\svbksb.for"/>
+		<File RelativePath=".\svdcmp.for"/>
+		<File RelativePath=".\timef.for"/>
+		<File RelativePath=".\timelog.for"/>
+		<File RelativePath=".\tmsr.for"/>
+		<File RelativePath=".\tmsrbin.for"/>
+		<File RelativePath=".\tmsrHOUS.for"/>
+		<File RelativePath=".\toxall.for"/>
+		<File RelativePath=".\toxchem.for"/>
+		<File RelativePath=".\valkh.for"/>
+		<File RelativePath=".\vcongrad.for"/>
+		<File RelativePath=".\velplth.for"/>
+		<File RelativePath=".\velplthe.for"/>
+		<File RelativePath=".\velpltv.for"/>
+		<File RelativePath=".\vsfp.for"/>
+		<File RelativePath=".\wasp4.for"/>
+		<File RelativePath=".\wasp5.for"/>
+		<File RelativePath=".\wasp6.for"/>
+		<File RelativePath=".\wasp7.for"/>
+		<File RelativePath=".\wavebl.for"/>
+		<File RelativePath=".\wavesxy.for"/>
+		<File RelativePath=".\WELCOME.f90"/>
+		<File RelativePath=".\wq3d.for"/>
+		<File RelativePath=".\wq3dinp.for"/>
+		<File RelativePath=".\wqske0.for"/>
+		<File RelativePath=".\wqske1.for"/>
+		<File RelativePath=".\wqske2.for"/>
+		<File RelativePath=".\wqske3.for"/>
+		<File RelativePath=".\wqske3gvc.for"/>
+		<File RelativePath=".\wqske4.for"/>
+		<File RelativePath=".\wqzero.for"/>
+		<File RelativePath=".\wqzero2.for"/>
+		<File RelativePath=".\wqzero3.for"/>
+		<File RelativePath=".\wqzero4.for"/>
+		<File RelativePath=".\wrsplth.for"/>
+		<File RelativePath=".\wsmrst.for"/>
+		<File RelativePath=".\wsmts.for"/>
+		<File RelativePath=".\wsmtsbin.for"/>
+		<File RelativePath=".\wwqnc.for"/>
+		<File RelativePath=".\wwqrst.for"/>
+		<File RelativePath=".\wwqts.for"/>
+		<File RelativePath=".\wwqtsbin.for"/>
+		<File RelativePath=".\wwqtso.for"/>
+		<File RelativePath=".\zbrent.for"/></Filter></Files>
+	<Globals/></VisualStudioProject>

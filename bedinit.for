@@ -226,7 +226,7 @@ C
               ENDDO
             ENDDO
           ENDIF
-          IF(IWRSP(1).GE.99.AND.ISHOUSATONIC.EQ.0)THEN
+          IF(IWRSP(1).GE.99)THEN
 	      OPEN(1,FILE='SSCOHSEDPMAP.INP')
 	      OPEN(2,FILE='SSCOHSEDPMAP.OUT')
 	      DO NSKIP=1,6
@@ -353,8 +353,13 @@ C
           DO NS=1,NSED
             DO K=1,KB
               DO L=2,LA
-                VFRBED(L,K,NS)=VFRBED(L,K,NS)/BEDLINIT(L,K)
-                VFRBED1(L,K,NS)=VFRBED1(L,K,NS)/BEDDINIT(L,K)
+                IF(K <= KBT(L))THEN
+                  VFRBED(L,K,NS)=VFRBED(L,K,NS)/BEDLINIT(L,K)
+                  VFRBED1(L,K,NS)=VFRBED1(L,K,NS)/BEDDINIT(L,K)
+                ELSE
+                  VFRBED(L,K,NS)=0.0
+                  VFRBED1(L,K,NS)=0.0
+                ENDIF
               ENDDO
             ENDDO
           ENDDO
@@ -365,8 +370,13 @@ C
             NS=NSED+NX
             DO K=1,KB
               DO L=2,LA
-                VFRBED(L,K,NS)=VFRBED(L,K,NS)/BEDLINIT(L,K)
-                VFRBED1(L,K,NS)=VFRBED1(L,K,NS)/BEDDINIT(L,K)
+                IF(K <= KBT(L))THEN
+                  VFRBED(L,K,NS)=VFRBED(L,K,NS)/BEDLINIT(L,K)
+                  VFRBED1(L,K,NS)=VFRBED1(L,K,NS)/BEDDINIT(L,K)
+                ELSE
+                  VFRBED(L,K,NS)=0.0
+                  VFRBED1(L,K,NS)=0.0
+                ENDIF
               ENDDO
             ENDDO
           ENDDO
@@ -710,7 +720,7 @@ C
               ENDDO
             ENDDO
           ENDIF
-          IF(IWRSP(1).GE.99.AND.ISHOUSATONIC.EQ.0)THEN
+          IF(IWRSP(1).GE.99)THEN
 	      OPEN(1,FILE='SSCOHSEDPMAP.INP')
 	      OPEN(2,FILE='SSCOHSEDPMAP.OUT')
 	      DO NSKIP=1,6
@@ -1039,7 +1049,7 @@ C
               ENDDO
             ENDDO
           ENDIF
-          IF(IWRSP(1).GE.99.AND.ISHOUSATONIC.EQ.0)THEN
+          IF(IWRSP(1).GE.99)THEN
 	      OPEN(1,FILE='SSCOHSEDPMAP.INP')
 	      OPEN(2,FILE='SSCOHSEDPMAP.OUT')
 	      DO NSKIP=1,6
@@ -1656,12 +1666,12 @@ C
         DO L=2,LA
           IF(K.LE.KBT(L))THEN
               VDRBED2(L,K)=VDRBED(L,K)
-              SDENAVG(L,K)=(BDENBED(L,K)-1000.0*PORBED(L,K))
-     &                    /(1.0-PORBED(L,K))
+C              SDENAVG(L,K)=(BDENBED(L,K)-1000.0*PORBED(L,K))
+C     &                    /(1.0-PORBED(L,K))
           ELSE
               VDRBED2(L,K)=VDRBED(L,KBT(L))
-              SDENAVG(L,K)=(BDENBED(L,KBT(L))-1000.0*PORBED(L,KBT(L)))
-     &                    /(1.0-PORBED(L,KBT(L)))
+C              SDENAVG(L,K)=(BDENBED(L,KBT(L))-1000.0*PORBED(L,KBT(L)))
+C     &                    /(1.0-PORBED(L,KBT(L)))
           ENDIF
         ENDDO
       ENDDO

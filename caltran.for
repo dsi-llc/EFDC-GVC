@@ -82,10 +82,6 @@ C
         FUHV(L,K)=0.
         FVHU(L,K)=0.
         FVHV(L,K)=0.
-        UUU(L,K)=0.
-        VVV(L,K)=0.
-        DU(L,K)=0.
-        DV(L,K)=0.
        ENDDO
       ENDDO
 C
@@ -923,23 +919,26 @@ C**********************************************************************C
 C
 C **  STANDARD ANTI-DIFFUSIVE ADVECTIVE FLUX CALCULATION 
 C
-      IF(IDRYTBP.EQ.0)THEN
-C
-C----------------------------------------------------------------------C
-C
       DO K=1,KC
-      DO L=1,LC
-      UUU(L,K)=0.0
-      VVV(L,K)=0.0
-	WWW(L,K)=0.0
-      ENDDO
+       DO L=1,LC
+        UUU(L,K)=0.
+        VVV(L,K)=0.
+        WWW(L,K)=0.0
+        DU(L,K)=0.
+        DV(L,K)=0.
+        FWU(L,K)=0.
+        FWV(L,K)=0.
+       ENDDO
       ENDDO
 C
       DO L=1,LC
 	WWW(L,0)=0.0
       ENDDO
-C
 
+      IF(IDRYTBP.EQ.0)THEN
+C
+C----------------------------------------------------------------------C
+C
       DO K=1,KC
       DO L=2,LA
       LS=LSC(L)
@@ -1087,10 +1086,6 @@ C
       ENDIF
       ENDDO
       ENDDO
-	ELSE
-	DO L=2,LA
-	FWU(L,KC)=0.0
-	ENDDO
 	ENDIF
 C
 C----------------------------------------------------------------------C
@@ -1534,25 +1529,6 @@ C
 C
 C----------------------------------------------------------------------C
 C
-      DO K=1,KC
-      DO L=2,LA
-        UUU(L,K)=0.
-        VVV(L,K)=0.
-        FUHU(L,K)=0.
-        FVHU(L,K)=0.
-        FUHV(L,K)=0.
-        FVHV(L,K)=0.
-	END DO
-	END DO
-C
-      DO K=1,KS
-      DO L=2,LA
-        WWW(L,K)=0.
-        FWU(L,K)=0.
-        FWV(L,K)=0.
-      ENDDO
-      ENDDO
-
       DO K=1,KC
       DO L=2,LA
 	IF(LMASKDRY(L))THEN

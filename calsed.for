@@ -50,9 +50,7 @@ C
      &                 PRESE(LCM,KBM),PRESH(LCM,KBM),PREST(LCM,KBM),
      &                 STRST(LCM,KBM),DZBTR1(LCM,KBM),SEDDIA50(LCM,KBM),
      &                 SEDBALL(LCM,KBM),ZBEDC(LCM,KBM),SGSM1(LCM,KBM),
-     &                 DSTRSE(LCM,KBM),DZBTR(LCM,KBM),STRSEM(LCM,KBM),
-     &                 SEDDIA90(LCM,KBM),SEDGEOSTD(LCM,KBM),
-     &                 SEDDIAGS(LCM,KBM),ZOTOTAL(LCM),ZOGRAIN(LCM)
+     &                 DSTRSE(LCM,KBM),DZBTR(LCM,KBM),STRSEM(LCM,KBM)
 C
       COMMON/SSEDTOX3/ ALOW(LCM,KBM+1),BMNN(LCM,KBM+1),CUPP(LCM,KBM+1),
      &                 RRHS(LCM,KBM+1),TOXTMP(LCM,KBM+1),
@@ -99,15 +97,11 @@ C
             ENDDO
           ENDIF
 C
-C         (ISEDVW.EQ.1) HWANG AND METHA
-C
           IF(ISEDVW.EQ.1)THEN
             DO L=2,LA
               WSETA(L,K,NS)=CSEDSET(L,SED(L,K+1,NS),0.0,ISEDVW)
             ENDDO
           ENDIF
-C
-C         (ISEDVW.EQ.2) SHRESTA AND ORLOB
 C
           IF(ISEDVW.EQ.2)THEN
 	      IF(ISWAVE.EQ.0)THEN
@@ -132,9 +126,6 @@ C
 	      ENDIF
           ENDIF
 C
-C         (ISEDVW.EQ.3) ZIEGLER AND NESBIT   
-C         (ISEDVW.EQ.4) MODIFIED ZIEGLER ?  
-C     
           IF(ISEDVW.GE.3.AND.ISEDVW.LE.4)THEN
 	      IF(ISWAVE.EQ.0)THEN
               DO L=2,LA
@@ -164,106 +155,15 @@ C
             ENDDO
           ENDIF
 C
-C         LICK AVERAGE FLOC DIAMETER
-C
-          IF(ISEDVW.GE.98)THEN
-C
-C          IF(N.EQ.ISEDDT)THEN
-C            DO L=2,LA
-C              USTARTMP=SQRT(QQ(L,0)/CTURB2)
-C	        TMP=1.+0.4*QCELLCTR(L)/USTARTMP
-C	        SHEAR=2.5*USTARTMP*TMP*HPI(L)
-C	        SEDSHEAR=SHEAR*SED(L,K+1,NS)
-C	        SEDTMP=SED(L,K+1,NS)
-C	        FDIATMP=1.
-C	        TOPTMP=2.174E-6
-C	        DO II=1,10
-C	          BOTTMP=3.5*SEDSHEAR*FDIATMP+SEDTMP
-C                FDIATMP=(TOPTMP/BOTTMP)**0.84746
-C              ENDDO
-C	        FLOCDIA(L,K+1)=FDIATMP  
-C              SEDFLOCDIA(L,K+1)=FDIATMP*SEDTMP
-C	        WSETINF=80.
-C	        WSETOOO=0.268*(FDIATMP**1.56)
-C	        TMPVAL=EXP(-0.07*SHEAR)
-C              WSETA(L,K,NS)=1.E-6*(WSETINF+(WSETOOO-WSETINF)*TMPVAL)
-C            ENDDO
-C          ENDIF
-C
-C          IF(N.GT.ISEDDT)THEN
-            IF(ISEDVW.EQ.99)THEN
+          IF(ISEDVW.GE.1)THEN
             DO L=2,LA
-	        IF(SEDFLOCDIA(L,K+1).GT.0.0)THEN
-	          FLOCDIA(L,K+1)=172.*SED(L,K+1,NS)/
-     &                        (SEDFLOCDIA(L,K+1)*WSETFLOC(L,K+1))
-              ELSE
-	          FLOCDIA(L,K+1)=0.0004
-              ENDIF
+              WSETA(L,K,NS)=MAX(WSETA(L,K,NS),WSEDO(NS))
             ENDDO
-	      ENDIF
+          ENDIF
+C
             DO L=2,LA
-              USTARTMP=SQRT(QQ(L,0)/CTURB2)
-C CONVERT SED CONCENTRATION FROM MG/L TO GM/GM**3
-	        SEDTMP=1.e-6*SED(L,K+1,NS)
-	        IF(USTARTMP.GT.0.0.AND.SEDTMP.GT.0.0)THEN
-	          SHEAR=(2.5*USTARTMP+QCELLCTR(L))/HPI(L)
-	          SHEARNB=2.5*USTARTMP/ZBR(L)
-	          SEDSHEAR=SHEAR*SEDTMP
-	          IF(ISEDSCOR(NS).GE.2) SEDSHEAR=SHEARNB*SEDTMP
-	          FDIATMP=FLOCDIA(L,K+1)
-	            TERM1=5.0*( 3.*SQRT(SEDSHEAR)*(FDIATMP**1.2)
-     &              +SEDTMP*(FDIATMP**0.2) )
-                  TERM2=4.6E5*( 3.5*SEDSHEAR*(FDIATMP**1.18)
-     &              +SEDTMP*(FDIATMP**0.18) )
-                  TERM1=EXP(TERM1*DELT)
-                  BOTTOM=1.-TERM2*FDIATMP*(1-TERM1)
-                  FDIATMP=FDIATMP*TERM1/BOTTOM
-	          FLOCDIA(L,K+1)=FDIATMP  
-C                SEDFLOCDIA(L,K+1)=FDIATMP*SED(L,K+1,NS)
-	          WSETINF=80.
-C CONVERT FLOC DIAMETER IN CM TO UM and limiting floc settling to um/s
-                WSETLIM=1.E6*WSEDO(NS)
-	          FDIATMPUM=10000.*FDIATMP
-	          WSETOOO=0.268*(FDIATMPUM**1.56)
-	          BOTTOM=1.+WSETOOO/WSETLIM
-	          WSETOOO=WSETOOO/BOTTOM
-	          TMPVAL=EXP(-0.07*SHEAR)
-	          IF(ISEDSCOR(NS).EQ.1) TMPVAL=EXP(-0.07*SHEARNB)
-	          IF(ISEDSCOR(NS).EQ.3) TMPVAL=EXP(-0.07*SHEARNB)
-                WSETA(L,K,NS)=1.E-6*(WSETINF+(WSETOOO-WSETINF)*TMPVAL)
-	        ELSE
-	          FLOCDIA(L,K+1)=0.0004
-C                SEDFLOCDIA(L,K+1)=SED(L,K+1,NS)
-                WSETA(L,K,NS)=1.E-6*WSETINF
-	        ENDIF
+              WSETA(L,K,NS)=SPB(L)*WSETA(L,K,NS)
             ENDDO
-C          ENDIF
-C
-            IF(ISEDVW.EQ.99)THEN
-            DO L=2,LA
-	        IF(FLOCDIA(L,K+1).GT.0.0)THEN
-	          SEDFLOCDIA(L,K+1)=172.*SED(L,K+1,NS)/
-     &                        (FLOCDIA(L,K+1)*WSETA(L,K,NS))
-              ELSE
-	          FLOCDIA(L,K+1)=0.0004
-	          SEDFLOCDIA(L,K+1)=172.*SED(L,K+1,NS)/
-     &                        (FLOCDIA(L,K+1)*WSETA(L,K,NS))
-              ENDIF
-            ENDDO
-	      ENDIF
-C
-          END IF
-C
-C          IF(ISEDVW.GE.1)THEN
-C            DO L=2,LA
-C              WSETA(L,K,NS)=MAX(WSETA(L,K,NS),WSEDO(NS))
-C            ENDDO
-C          ENDIF
-C
-          DO L=2,LA
-            WSETA(L,K,NS)=SPB(L)*WSETA(L,K,NS)
-	      WSETFLOC(L,K+1)=WSETA(L,K,NS)
-          ENDDO
 c
 C----------------------------------------------------------------------C
 C
@@ -293,13 +193,15 @@ C     HQI Change, 01/05/04, SO and RM
 C     Change to implement HQI Sed-flume analysis based critical shear 
 C     stress options
 c                IF(IWRSP(1).GE.2) TAURTMP=TAUR(1)
-CJMH091406                IF((IWRSP(1).GE.2).AND.(IWRSP(1).LT.99)) TAURTMP=TAUR(1)
-                IF((IWRSP(1).GE.2).AND.(IWRSP(1).LT.4)) TAURTMP=TAUR(1)
-	          TMPSTR=1.0
-                IF(IWRSP(1).EQ.4)TMPSTR=0.0
+                IF((IWRSP(1).GE.2).AND.(IWRSP(1).LT.99)) TAURTMP=TAUR(1)
+cjh24dec2008
+	          IF(IWRSP(1).ge.99)THEN
+	            TAURTMP=TAUNS(L,KBT(L))
+	          ENDIF
 C#######################################################################
-                TAUE=(TAUBSED(L)-TMPSTR*TAURS(L,KBT(L)))/TAURTMP
+                TAUE=(TAUBSED(L)-TAURS(L,KBT(L)))/TAURTMP
                 TAUE=MAX(TAUE,0.0)
+	          IF(ISLTAUC(NS).EQ.1.AND.TAUBSED(L).LT.TAURTMP) TAUE=0.
 	          TMPSEDHID=1.0
 	          IF(ISTRAN(7).GE.1.AND.COSEDHID(1).NE.0.0) 
      &            TMPSEDHID=(FRACCOH(L,KBT(L)))**COSEDHID(1)
@@ -330,11 +232,13 @@ c                   WESE=TMPSEDHID*WESE*(TAUE**1.31 ) ! North of (All of
 c                 END IF                              !   5C + Woods Pond)
 
 cSO 05/14/04
-                  IF ( L.LE.2042 ) THEN
-                    WESE=TMPSEDHID*WESE*(TAUE**0.949) ! All of 5C
-                  ELSE                                !      + Woods Pond
-                    WESE=TMPSEDHID*WESE*(TAUE**1.59 ) ! North of (All of
-                  END IF                              !   5C + Woods Pond)
+CJH                  IF ( L.LE.2042 ) THEN
+CJH                    WESE=TMPSEDHID*WESE*(TAUE**0.949) ! All of 5C
+CJH                  ELSE                                !      + Woods Pond
+CJH                    WESE=TMPSEDHID*WESE*(TAUE**1.59 ) ! North of (All of
+CJH                  END IF                              !   5C + Woods Pond)
+
+                      WESE=TMPSEDHID*WESE*( TAUE**TEXPS(L,KBT(L)) )
 
                 ENDIF
 C#######################################################################
@@ -353,8 +257,15 @@ C     Change to compute probability of deposition using total bed shear
 C     rather than cohesive grain shear
 c            IF(TAUBSED(L).LT.TAUD(NS)) 
 c     &        PROBDEP=(TAUD(NS)-TAUBSED(L))/TAUD(NS)
-            IF(TAUB(L).LT.TAUD(NS)) 
+C
+            IF(IWRSP(1).LT.99)THEN
+              IF(TAUB(L).LT.TAUD(NS)) 
      &           PROBDEP=(TAUD(NS)-TAUB(L))/TAUD(NS)
+            ELSE
+              IF(TAUB(L).LT.TAUDS(L)) 
+     &           PROBDEP=(TAUDS(L)-TAUB(L))/TAUDS(L)
+            ENDIF
+C
 C#######################################################################
             IF(SED(L,1,NS).GT.SEDMDGM) PROBDEP=1.
             WSETMP=PROBDEP*WSETA(L,0,NS)
@@ -365,13 +276,6 @@ C#######################################################################
             SEDF(L,0,NS)=-WSETMP*SED(L,1,NS)+WESE
 cjmh216            SEDBTMP=SEDB1(L,KBT(L),NS)-DELT*SEDF(L,0,NS)
             SEDBTMP=SEDB(L,KBT(L),NS)-DELT*SEDF(L,0,NS)
-C
-C ADD FLOC SETTLING
-            IF(ISEDVW.EQ.99)THEN
-	          SEDFLOCDIA(L,1)=SEDFLOCDIA(L,1)/(1.+WVEL*WSETMP)
-            ENDIF
-C ADD FLOC SETTLING
-C
 C           IF(SEDBTMP.LT.0.0)THEN
 C             SEDF(L,0,NS)=0.
 C             SEDBTMP=SEDB1(L,KBT(L),NS)
@@ -396,10 +300,6 @@ cjmh216     &                        +S2TL*SEDB1(L,KBT(L),NS)
             QWBDTOP(L)=QWBDTOP(L)+DSEDGMM*
      &                 ( VDRBED(L,KBT(L))*MAX(SEDF(L,0,NS),0.)
      &                  +VDRDEPO(NS)*MIN(SEDF(L,0,NS),0.) )
-            IF(ISEDVW.GE.99)THEN
-              SEDFLOCDIA(L,1)=SEDFLOCDIA(L,1)
-     &                       +WVEL*SEDF(L,0,NS)*FLOCDIA(L,1)
-            ENDIF
           ENDDO
 C
 C----------------------------------------------------------------------C
@@ -520,17 +420,19 @@ C **  SURFACE EROSION
                 WESE=CTMPDRY(L)*WRSPS(L,KBT(L))*VFRBED(L,KBT(L),NS)
 c1104                WESE=MIN(WESE,WESEMX)
                 TAURTMP=TAURS(L,KBT(L))
-CJMH091406	          IF(IWRSP(1).GE.2)TAURTMP=TAUR(1)
-                IF((IWRSP(1).GE.2).AND.(IWRSP(1).LT.4)) TAURTMP=TAUR(1)
-	          TMPSTR=1.0
-                IF(IWRSP(1).EQ.4)TMPSTR=0.0
-C#######################################################################
-                TAUE=(TAUBSED(L)-TMPSTR*TAURS(L,KBT(L)))/TAURTMP
+	          IF(IWRSP(1).GE.2)TAURTMP=TAUR(1)
+		          IF(IWRSP(1).ge.99)TAURTMP=TAUNS(L,KBT(L))
+                TAUE=(TAUBSED(L)-TAURS(L,KBT(L)))/TAURTMP
                 TAUE=MAX(TAUE,0.0)
-                TMPSEDHID=1.0
+	          IF(ISLTAUC(NS).EQ.1.AND.TAUBSED(L).LT.TAURTMP) TAUE=0.
+			  TMPSEDHID=1.0
 	          IF(ISTRAN(7).GE.1.AND.COSEDHID(1).NE.0.0) 
      &            TMPSEDHID=(FRACCOH(L,KBT(L)))**COSEDHID(1)
-                WESE=TMPSEDHID*WESE*(TAUE**TEXP(NS))
+                IF(IWRSP(1).LT.99)THEN
+                  WESE=TMPSEDHID*WESE*(TAUE**TEXP(NS))
+                ELSE
+                  WESE=TMPSEDHID*WESE*( TAUE**TEXPS(L,KBT(L)) )
+                ENDIF
 c1104
                 WESE=MIN(WESE,WESEMX)
 c1104
@@ -763,17 +665,19 @@ C **  SURFACE EROSION
                 WESE=CTMPDRY(L)*WRSPS(L,KBT(L))*VFRBED(L,KBT(L),NS)
 c1104                WESE=MIN(WESE,WESEMX)
                 TAURTMP=TAURS(L,KBT(L))
-CJMH091406	          IF(IWRSP(1).GE.2)TAURTMP=TAUR(1)
-                IF((IWRSP(1).GE.2).AND.(IWRSP(1).LT.4)) TAURTMP=TAUR(1)
-	          TMPSTR=1.0
-                IF(IWRSP(1).EQ.4)TMPSTR=0.0
-C#######################################################################
-                TAUE=(TAUBSED(L)-TMPSTR*TAURS(L,KBT(L)))/TAURTMP
+	          IF(IWRSP(1).GE.2)TAURTMP=TAUR(1)
+	          IF(IWRSP(1).GE.99)TAURTMP=TAUNS(L,KBT(L))
+                TAUE=(TAUBSED(L)-TAURS(L,KBT(L)))/TAURTMP
                 TAUE=MAX(TAUE,0.0)
+	          IF(ISLTAUC(NS).EQ.1.AND.TAUBSED(L).LT.TAURTMP) TAUE=0.
                 TMPSEDHID=1.0
 	          IF(ISTRAN(7).GE.1.AND.COSEDHID(1).NE.0.0) 
      &            TMPSEDHID=(FRACCOH(L,KBT(L)))**COSEDHID(1)
-                WESE=TMPSEDHID*WESE*(TAUE**TEXP(NS))
+                IF(IWRSP(1).LT.99)THEN
+                  WESE=TMPSEDHID*WESE*(TAUE**TEXP(NS))
+                ELSE
+                  WESE=TMPSEDHID*WESE*( TAUE**TEXPS(L,KBT(L)) )
+                ENDIF
 c1104
                 WESE=MIN(WESE,WESEMX)
 c1104
@@ -1069,18 +973,19 @@ C **  SURFACE EROSION
                 WESE=CTMPDRY(L)*WRSPS(L,KBT(L))*VFRBED(L,KBT(L),NS)
 c1104                WESE=MIN(WESE,WESEMX)
                 TAURTMP=TAURS(L,KBT(L))
-CJMH091406	          IF(IWRSP(1).GE.2)TAURTMP=TAUR(1)
-                IF((IWRSP(1).GE.2).AND.(IWRSP(1).LT.4)) TAURTMP=TAUR(1)
-	          TMPSTR=1.0
-                IF(IWRSP(1).EQ.4)TMPSTR=0.0
-C#######################################################################
-                TAUE=(TAUBSED(L)-TMPSTR*TAURS(L,KBT(L)))/TAURTMP
-cjh                TAUE=(TAUBSED(L)-TAURS(L,KBT(L)))/TAURTMP
+	          IF(IWRSP(1).GE.2)TAURTMP=TAUR(1)
+                IF(IWRSP(1).ge.99)TAURTMP=TAUNS(L,KBT(L))
+			  TAUE=(TAUBSED(L)-TAURS(L,KBT(L)))/TAURTMP
                 TAUE=MAX(TAUE,0.0)
+	          IF(ISLTAUC(NS).EQ.1.AND.TAUBSED(L).LT.TAURTMP) TAUE=0.
                 TMPSEDHID=1.0
                 IF(ISTRAN(7).GE.1.AND.COSEDHID(1).NE.0.0) 
      &            TMPSEDHID=(FRACCOH(L,KBT(L)))**COSEDHID(1)
-                WESE=TMPSEDHID*WESE*(TAUE**TEXP(NS))
+                IF(IWRSP(1).LT.99)THEN
+                  WESE=TMPSEDHID*WESE*(TAUE**TEXP(NS))
+                ELSE
+                  WESE=TMPSEDHID*WESE*( TAUE**TEXPS(L,KBT(L)) )
+                ENDIF
 c1104
                 WESE=MIN(WESE,WESEMX)
 c1104
@@ -1303,13 +1208,13 @@ CDIAG  104 FORMAT(' N,NS,I,J,SEDBMN,SEDBSMN = ',4I5,4E13.4)
 CDIAG  105 FORMAT(' N,NS,I,J,SEDFMX,SEDFSMX = ',4I5,4E13.4)       
 CDIAG  106 FORMAT(' N,NS,I,J,SEDFMN,SEDFSMN = ',4I5,4E13.4)       
 C
-        OPEN(1,FILE='NEGSEDSND.OUT',POSITION='APPEND')
+        OPEN(99,FILE='NEGSEDSND.OUT',POSITION='APPEND')
 C
         DO NS=1,NSED
           DO K=1,KC
             DO L=2,LA
               IF(SED(L,K,NS).LT.0.)THEN
-                WRITE(1,107)TIME,NS,IL(L),JL(L),K,SED(L,K,NS)
+                WRITE(99,107)TIME,NS,IL(L),JL(L),K,SED(L,K,NS)
               ENDIF
             ENDDO
           ENDDO
@@ -1318,13 +1223,13 @@ C
         DO NS=1,NSED
           DO L=2,LA
             IF(SEDB(L,KBT(L),NS).LT.0.)THEN
-              WRITE(1,108)TIME,NS,IL(L),JL(L),KBT(L),SEDB(L,KBT(L),NS),
-     &             SEDF(L,0,NS)
+              WRITE(99,108)TIME,NS,IL(L),JL(L),KBT(L),
+     &             SEDB(L,KBT(L),NS),SEDF(L,0,NS)
             ENDIF
           ENDDO
         ENDDO
 C
-        CLOSE(1)
+        CLOSE(99)
 C
 C **  ACCUMULATE NET POSTIVE AND NEGATIVE COHESIVE SEDIMENT FLUXES
 C
@@ -1334,7 +1239,6 @@ C
             SEDFDTAN(L,NS)=SEDFDTAN(L,NS)+DELT*MIN(SEDF(L,0,NS),0.0)
           ENDDO
         ENDDO
-C
 C
   107 FORMAT(' TIME,NS,I,J,K,NEGSED = ',F12.4,4I5,4E13.4)       
   108 FORMAT(' TIME,NS,I,J,NEGSEDB,SEDF = ',F12.4,4I5,4E13.4)       

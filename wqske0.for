@@ -477,14 +477,8 @@ C
      &              + WQKHNM/(RNH4NO3+ 1.E-18)) * WQTTM
 
         ENDIF
-          WQNIT(L) = O2WQ * WQTDNIT(IWQT(L)) /
-     *      ( (WQKHNDO+O2WQ) * (WQKHNN+RNH4WQ) + 1.E-18)
-C
-C        IF(L.EQ.LTEST.AND.IIITEST.EQ.1)THEN
-C          WRITE(1,1414)K,WQNIT(L),O2WQ,WQTDNIT(IWQT(L)),WQKHNDO,
-C     &    WQKHNN,RNH4WQ,
-C        ENDIF
-C
+        WQNIT(L) = WQTDNIT(IWQT(L))*WQVO(L,K,19)/(WQKHNDO+WQVO(L,K,19)      ! DSI
+     &       + 1.E-18) * WQVO(L,K,14) / (WQKHNN + WQVO(L,K,14) + 1.E-18)
 C
 C----------------------------------------------------------------------C
 C

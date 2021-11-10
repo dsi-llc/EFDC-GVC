@@ -621,8 +621,9 @@ C
      &             +TVAR1S(LS,1)*(TVAR3E(LSE)+TVAR3E(LS)) )
       ENDDO
 C
-      ENDIF
-      ENDIF
+      ENDIF   ! *** END OF IRVEC = 14
+      ENDIF   ! *** END OF ISTL = 3
+
 C
 C----------------------------------------------------------------------C
 C

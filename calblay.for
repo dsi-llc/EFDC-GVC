@@ -386,6 +386,7 @@ C ** ADD NEW TOP LAYER
 C
           DO L=2,LA
 C            IF(HBED(L,KBT(L)-1).GT.HBEDMAX)THEN
+            IF(KBT(L).GT.1)THEN                  ! DSI
             IF(HBED(L,KBT(L)-1).GT.HBEDMXT)THEN
               IF(KBT(L).LT.KB)THEN
 C
@@ -480,12 +481,14 @@ C
 C 
               ENDIF
             ENDIF
+            ENDIF  ! DSI
           ENDDO 
 C
 C
 C ** REZONE WITH NEW TOP LAYER ADDED NEXT TIME STEP
 C
           DO L=2,LA
+            IF(KBT(L).GT.1)THEN                  ! DSI
             IF(HBED(L,KBT(L)-1).GT.HBEDMXT)THEN
               IF(KBT(L).EQ.KB.AND.KB.GT.1)THEN
 C
@@ -606,11 +609,13 @@ C
 C 
               ENDIF
             ENDIF
+            ENDIF
           ENDDO 
 C
 C ** REMOVE TOP LAYER
 C
           DO L=2,LA
+            IF(KBT(L).GT.1)THEN                  ! DSI
             IF(HBED(L,KBT(L)-1).LT.HBEDMIN)THEN
               IF(KBT(L).GT.2)THEN
 C
@@ -683,6 +688,7 @@ C
                 WRITE(1,1113)N,IL(L),JL(L),(HBED(L,K),K=1,KB)
 C 
               ENDIF
+            ENDIF
             ENDIF
           ENDDO 
 C

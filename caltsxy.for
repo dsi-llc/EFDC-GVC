@@ -25,6 +25,7 @@ C
       INCLUDE 'EFDC.PAR'
       INCLUDE 'EFDC.CMN'
 C
+      REAL  WTM1, WTM2, TDIFF, TIME
       DIMENSION  PATMTT(NASERM),TATMTT(NASERM),TWETTT(NASERM),
      &           RAINTT(NASERM),EVAPTT(NASERM),SOLSWRTT(NASERM),
      &           CLOUDTT(NASERM),SVPAT(NASERM),VPAT(NASERM),
@@ -611,80 +612,6 @@ C
       ENDIF
 C
       ENDIF
-C
-C**********************************************************************C
-C
-      IF(NISER.GT.0)THEN
-C
-      DO NI=1,NISER
-        IF(ISDYNSTP.EQ.0)THEN
-          TIME=DT*FLOAT(N)/TCASER(NI)+TBEGIN*(TCON/TCISER(NI))
-        ELSE
-          TIME=TIMESEC/TCISER(NA)
-        ENDIF
-        M1=MITLAST(NI)    
-  500   CONTINUE
-        M2=M1+1
-        IF(TIME.GT.TISER(M2,NI))THEN
-          M1=M2
-          GOTO 500
-        ELSE
-          MITLAST(NI)=M1
-        ENDIF      
-        TDIFF=TISER(M2,NI)-TISER(M1,NI)
-        WTM1=(TISER(M2,NI)-TIME)/TDIFF
-        WTM2=(TIME-TISER(M1,NI))/TDIFF
-        RICECOVT(NI)=WTM1*RICECOVS(M1,NI)+WTM2*RICECOVS(M2,NI)
-        RICETHKT(NI)=WTM1*RICETHKS(M1,NI)+WTM2*RICETHKS(M2,NI)
-	ENDDO
-C
-      ENDIF
-C
-C**********************************************************************C
-C
-      DO L=2,LA
-        RICECOVL(L)=0.
-	  RICETHKL(L)=0.
-	ENDDO
-
-      IF(NISER.EQ.1)THEN
-        DO L=2,LA
-          RICECOVL(L)=RICECOVT(1)
-	    RICETHKL(L)=RICETHKT(1)
-	  ENDDO
-	ENDIF
-C
-      IF(NISER.GT.1)THEN
-        DO NI=1,NISER
-          DO L=2,LA
-            RICECOVL(L)=RICECOVL(L)+RICEWHT(L,NI)*RICECOVT(NI)
-            RICETHKL(L)=RICETHKL(L)+RICEWHT(L,NI)*RICETHKT(NI)
-	    ENDDO
-        ENDDO
-	ENDIF
-C
-      IF(NISER.GT.0)THEN
-        DO L=2,LA
-          ICECOVL(L)=NINT(RICECOVL(L))
-	  ENDDO
-        DO L=2,LA
-          RICECOVL(L)=FLOAT(ICECOVL(L))
-	  ENDDO
-        DO L=2,LA
-          IF(ICECOVL(L).EQ.0) RICETHKL(L)=0.0
-	  ENDDO
-	ENDIF
-C
-C**********************************************************************C
-C
-       IF(ISICE.EQ.1)THEN
-        DO L=2,LA
-	   TAUICE=-0.001*SQRT(U(L,KC)*U(L,KC)+V(L,KC)*V(L,KC))
-         TSX(L)=RICECOVL(L)*TAUICE*U(L,KC)+(1.-RICECOVL(L))*TSX(L)
-         TSY(L)=RICECOVL(L)*TAUICE*V(L,KC)+(1.-RICECOVL(L))*TSY(L)
-	   WINDST(L)=(1.-RICECOVL(L))*WINDST(L)
-        ENDDO
-	 ENDIF
 C
 C**********************************************************************C
 C

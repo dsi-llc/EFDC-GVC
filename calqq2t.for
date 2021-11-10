@@ -257,7 +257,7 @@ C
 C
       DO LL=1,NCBE
       L=LCBE(LL)
-      IF(FUHU(L,K).LT.0.)THEN
+      IF(FUHU(L,K).LT.0.0)THEN
       FUHU(L,K)=0.0
       FUHV(L,K)=0.0
       ENDIF

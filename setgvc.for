@@ -278,13 +278,13 @@ C
       DO L=2,LA
 	  GVCSCLU(L)=1.0
 	  IF(SUB(L).GT.0.5)THEN
-	    KGVCU(L)=MAX(KGVCP(L),KGVCP(L-1))
-	    KLTMP=KC-KGVCU(L)+1 
-	    GVCSCLU(L)=FLOAT(KC)/FLOAT(KLTMP)
-		DO K=KGVCU(L),KC 
+	    KGVCU(L)=MAX(KGVCP(L),KGVCP(L-1))   ! *** Maximum layer number of active bottom layer
+	    KLTMP=KC-KGVCU(L)+1                 ! *** Number of active Layers
+	    GVCSCLU(L)=FLOAT(KC)/FLOAT(KLTMP)   ! *** Ratio of Total/Minimum Active Layers
+          DO K=KGVCU(L),KC 
             LGVCU(L,K)=.TRUE.
 	    ENDDO
-		DO K=1,KC 
+		  DO K=1,KC 
             IF(LGVCU(L,K))THEN
 	        SUB3D(L,K)=1.0
 	        SUB3DO(L,K)=1.0

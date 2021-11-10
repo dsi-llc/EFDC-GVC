@@ -416,120 +416,6 @@ C
       ENDIF
       ENDDO
 C
-C----------------------------------------------------------------------C
-C
-C      DO LL=1,NPBW
-C      L=LPBW(LL)
-C       CC(L)=DELTI*DXYP(L)
-C       CS(L)=0.
-C       CW(L)=0.
-C       CE(L)=0.
-C       CN(L)=0.
-C      FP1(L)=PSERT(NPSERW(LL))
-C      DO M=1,MTIDE
-C      TC=CCCOS(M)
-C      TS=SSSIN(M)
-C      FP1(L)=FP1(L)+PCBW(LL,M)*TC+PSBW(LL,M)*TS
-C      ENDDO
-C      CET=-0.5*DELTD2*G*HRUO(L+1)*HUTMP(L+1)
-C      IF(ISPBW(LL).GE.1)THEN
-C       TMP=DELT*SQRT(G*HMU(L+1))*DXIU(L+1)
-C       CC(L)=CET*(1.+TMP)/(1.-TMP)
-C       CE(L)=CET
-C       FP1(L)=CET*(4.*FP1(L)
-C     & -2.*SQRT(G*HMU(L+1))*FUHDYE(L+1)*DYIU(L+1)*HUI(L+1))/(1.-TMP)
-C      ELSE
-C       FP1(L+1)=-CET*FP1(L)
-C       FP1(L)=CC(L)*FP1(L)
-C      ENDIF
-C      ENDDO
-C
-C----------------------------------------------------------------------C
-C
-C      DO LL=1,NPBE
-C      L=LPBE(LL)
-C       CC(L)=DELTI*DXYP(L)
-C       CS(L)=0.
-C       CW(L)=0.
-C       CE(L)=0.
-C       CN(L)=0.      
-C      FP1(L)=PSERT(NPSERE(LL))
-C      DO M=1,MTIDE
-C      TC=CCCOS(M)
-C      TS=SSSIN(M)
-C      FP1(L)=FP1(L)+PCBE(LL,M)*TC+PSBE(LL,M)*TS
-C      ENDDO
-C      CWT=-0.5*DELTD2*G*HRUO(L  )*HUTMP(L  )
-C      IF(ISPBE(LL).GE.1)THEN
-C       TMP=DELT*SQRT(G*HMU(L))*DXIU(L)
-C       CC(L)=CWT*(1.+TMP)/(1.-TMP)
-C       CW(L)=CWT
-C       FP1(L)=CWT*(4.*FP1(L)
-C     & +2.*SQRT(G*HMU(L))*FUHDYE(L)*DYIU(L)*HUI(L))/(1.-TMP)
-C      ELSE
-C       FP1(L-1)=-CWT*FP1(L)
-C       FP1(L)=CC(L)*FP1(L)
-C      ENDIF
-C      ENDDO
-C
-C----------------------------------------------------------------------C
-C
-C      DO LL=1,NPBS
-C      L=LPBS(LL)
-C       CC(L)=DELTI*DXYP(L)
-C       CS(L)=0.
-C       CW(L)=0.
-C       CE(L)=0.
-C       CN(L)=0.
-C      LN=LNC(L)
-C      FP1(L)=PSERT(NPSERS(LL))
-C      DO M=1,MTIDE
-C      TC=CCCOS(M)
-C      TS=SSSIN(M)
-C      FP1(L)=FP1(L)+PCBS(LL,M)*TC+PSBS(LL,M)*TS
-C      ENDDO
-C      CNT=-0.5*DELTD2*G*HRVO(LN )*HVTMP(LN )
-C      IF(ISPBS(LL).GE.1)THEN
-C       TMP=DELT*SQRT(G*HMV(LN))*DYIV(LN)
-C       CC(L)=CNT*(1.+TMP)/(1.-TMP)
-C       CN(L)=CNT
-C       FP1(L)=CNT*(4.*FP1(L)
-C     & -2.*SQRT(G*HMV(LN))*FVHDXE(LN)*DXIV(LN)*HVI(LN))/(1.-TMP)
-C      ELSE
-C       FP1(LN)=-CNT*FP1(L)
-C       FP1(L)=CC(L)*FP1(L)
-C      ENDIF
-C      ENDDO
-C
-C----------------------------------------------------------------------C
-C
-C      DO LL=1,NPBN
-C      L=LPBN(LL)
-C       CC(L)=DELTI*DXYP(L)
-C       CS(L)=0.
-C       CW(L)=0.
-C       CE(L)=0.
-C       CN(L)=0.
-C      LS=LSC(L)
-C      FP1(L)=PSERT(NPSERN(LL))
-C      DO M=1,MTIDE
-C      TC=CCCOS(M)
-C      TS=SSSIN(M)
-C      FP1(L)=FP1(L)+PCBN(LL,M)*TC+PSBN(LL,M)*TS
-C      ENDDO
-C      CST=-0.5*DELTD2*G*HRVO(L  )*HVTMP(L  )
-C      IF(ISPBN(LL).GE.1)THEN
-C       TMP=DELT*SQRT(G*HMV(L))*DYIV(L)
-C       CC(L)=CST*(1.+TMP)/(1.-TMP)
-C       CS(L)=CST
-C       FP1(L)=CST*(4.*FP1(L)
-C     & +2.*SQRT(G*HMV(L))*FVHDXE(L)*DXIV(L)*HVI(L))/(1.-TMP)
-C      ELSE
-C       FP1(LS)=-CST*FP1(L)
-C       FP1(L)=CC(L)*FP1(L)
-C      ENDIF
-C      ENDDO
-C
 C**********************************************************************C
 C
 C **  ADJUST VOLUME SOURCE AND SINKS
@@ -655,9 +541,7 @@ C
         VHDX1E(L)=VHDXE(L)
         U1V(L)=UV(L)
         V1U(L)=VU(L)
-C       DELP=P(L)-P1(L)
         P1(L)=P(L)
-C       P(L)=P(L)+DELP
         H1U(L)=HU(L)
         H1V(L)=HV(L)
         H1UI(L)=HUI(L)

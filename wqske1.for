@@ -575,8 +575,8 @@ C
           WQPNM(L) = (RNO3WQ(L)/(WQKHNM+RNH4WQ(L)+ 1.E-18)
      &              + WQKHNM/(RNH4NO3(L)+ 1.E-18)) * WQTTM
         ENDIF
-        WQNIT(L) = O2WQ(L) * WQTDNIT(IWQT(L)) /
-     *      ( (WQKHNDO+O2WQ(L)) * (WQKHNN+RNH4WQ(L)) + 1.E-18)
+        WQNIT(L) = WQTDNIT(IWQT(L)) * O2WQ(L) / (WQKHNDO + O2WQ(L)      ! DSI
+     &        + 1.E-18) * RNH4WQ(L) / (WQKHNN + RNH4WQ(L) + 1.E-18)
 C
 C
 C        IF(L.EQ.LTEST.AND.IIITEST.EQ.1)THEN
@@ -2077,8 +2077,12 @@ C       LL=LF+LDM-1
          IMWQZ = IWQZMAP(L,1)
          WQDFBC(L) = SCB(L)*WQWSC(IMWQZ)*WQV(L,1,1)
          WQDFBD(L) = SCB(L)*WQWSD(IMWQZ)*WQV(L,1,2)
+         if(IDNOTRVA>0)then
          WQDFBG(L) = SCB(L)*WQWSG(IMWQZ)*WQV(L,1,3)
      +             +WQWSM*DZWQ(L)*WQV(L,1,IDNOTRVA)
+         else
+         WQDFBG(L) = SCB(L)*WQWSG(IMWQZ)*WQV(L,1,3)
+         endif
          WQDFRC(L) = SCB(L)*WQWSRP(IMWQZ)*WQV(L,1,4)
          WQDFLC(L) = SCB(L)*WQWSLP(IMWQZ)*WQV(L,1,5)
          WQDFRP(L) = SCB(L)*WQWSRP(IMWQZ)*WQV(L,1,7)

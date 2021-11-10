@@ -72,10 +72,6 @@ C
         FUHV(L,K)=0.
         FVHU(L,K)=0.
         FVHV(L,K)=0.
-        UUU(L,K)=0.
-        VVV(L,K)=0.
-        DU(L,K)=0.
-        DV(L,K)=0.
        ENDDO
       ENDDO
 C
@@ -487,11 +483,20 @@ C
 C----------------------------------------------------------------------C
 C
       DO K=1,KC
-      DO L=1,LC
-      UUU(L,K)=0.0
-      VVV(L,K)=0.0
-	WWW(L,K)=0.0
+       DO L=1,LC
+        UUU(L,K)=0.
+        VVV(L,K)=0.
+        WWW(L,K)=0.0
+        DU(L,K)=0.
+        DV(L,K)=0.
+        FWU(L,K)=0.
+        FWV(L,K)=0.
+       ENDDO
       ENDDO
+C
+C
+      DO L=1,LC
+        FWU(L,0)=0.
       ENDDO
 C
       DO L=1,LC

@@ -741,6 +741,7 @@ C
       DO MLTM=1,MLTMSR
        NTSSS=NTSSSS(MLTM)
        MTSCC=MTSCUR(NTSSS)
+       IF(MTSCC.GT.0.AND.NTSSS.GT.0)THEN        ! DSI
        IF(TIME.GE.TSSTRT(MTSCC,NTSSS))THEN
        IF(TIME.LE.TSSTOP(MTSCC,NTSSS))THEN
         I=ILTMSR(MLTM)
@@ -770,7 +771,7 @@ C
           ENDIF
           IF(ISTRAN(6).GE.1)THEN
             OPEN(41,FILE=FNSED(MLTM),POSITION='APPEND')
-            IF(ISNDAL.EQ.2)THEN
+            IF(ISNDAL.EQ.2 .AND. KBT(L).GT.1)THEN      ! DSI
 		    SEDBTMP=SEDBT(L,KBT(L))+SEDBT(L,KBT(L)-1)
 	      ELSE
 		    SEDBTMP=SEDBT(L,KBT(L))
@@ -786,7 +787,7 @@ C
           IF(ISTRAN(7).GE.1)THEN
 	      DO NX=1,NSND
             OPEN(41,FILE=FNSND(MLTM,NX),POSITION='APPEND')
-            IF(ISNDAL.EQ.2)THEN
+            IF(ISNDAL.EQ.2.AND.KBT(L).GT.1)THEN            ! DSI
 		    SNDBTMP=SNDB(L,KBT(L),NX)+SNDB(L,KBT(L)-1,NX)
 	      ELSE
 		    SNDBTMP=SNDB(L,KBT(L),NX)
@@ -1052,6 +1053,7 @@ c     &                 ,QCHANUIJ(L),QCHANVIJ(L),QDWASTE(L),VDWASTE(L)
         ENDIF
        ENDIF
        ENDIF
+       ENDIF   ! DSI
       ENDDO  
 C
 C**********************************************************************C

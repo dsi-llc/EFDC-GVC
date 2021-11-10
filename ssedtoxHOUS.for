@@ -1868,7 +1868,7 @@ cjah
         ENDDO
 C
         IF(ITMP.EQ.1)THEN
-          CALL EEXPOUT(0)
+          CALL EE_LINKAGE(0)
           CALL SURFPLT
           CALL RESTOUT(1)
           IF(NDRYSTP.LT.0) THEN

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VisualStudioUserFile ProjectCreator="Intel Fortran" Keyword="Console Application" Version="11.0" ProjectIdGuid="{CC5BD254-970A-45E8-9827-200363030C39}">
+	<Configurations>
+		<Configuration Name="Debug32|Win32" WorkingDirectory="F:\Projects\ExxonMobil\2013 Newtown Creek\Models\2015-12-08 SGZ Evaluation for 2012\GVC\Phase2\"/>
+		<Configuration Name="Release32|Win32"/>
+		<Configuration Name="Debug64|Win32"/>
+		<Configuration Name="Release64|Win32"/>
+		<Configuration Name="Debug32|x64"/>
+		<Configuration Name="Release32|x64"/>
+		<Configuration Name="Debug64|x64" WorkingDirectory="F:\EFDC Testing\Test Cases\6Bend\EE7.1\"/>
+		<Configuration Name="Release64|x64"/></Configurations></VisualStudioUserFile>

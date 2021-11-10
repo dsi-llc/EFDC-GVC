@@ -235,7 +235,7 @@ C
         ENDDO
         CLOSE(1)
 C
-        CALL EEXPOUT(0)
+        CALL EE_LINKAGE(0)
         CALL SURFPLT
         STOP
 C

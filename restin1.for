@@ -91,7 +91,7 @@ c
        READ(1,*,ERR=1013)(SAL(L,K),K=1,KC)
        READ(1,*,ERR=1014)(SAL1(L,K),K=1,KC)
       ENDIF
-      IF(ISCI(2).EQ.1)THEN
+      IF(ISCI(2).GE.1)THEN  ! *** HANDLE QEA TEMPB BYPASS
        READ(1,*,ERR=1015)(TEM(L,K),K=1,KC)
        READ(1,*,ERR=1016)(TEM1(L,K),K=1,KC)
       ENDIF
@@ -135,7 +135,7 @@ C       READ(1,*,ERR=1022)(SFL2(L,K),K=1,KC)
        READ(1,*,ERR=1019)(VDRBED(L,K),K=1,KB)
        READ(1,*,ERR=1019)(VDRBED1(L,K),K=1,KB)
       ENDIF
-      ENDDO
+      ENDDO  ! *** END OF DO L=2,LA
 C
       DO M=1,4
       IF(ISCI(M).EQ.1)THEN
@@ -507,7 +507,7 @@ C
 C
 C ** READ BED TEMPERATURE  HTBED1 HTBED2
 C
-      IF(ISCO(2).GE.1.)THEN
+      IF(ISCI(2).EQ.1)THEN                       ! *** Bypass for AQ Compatibililty ( ISCI(2) = 2 Bypasses )
        OPEN(1,FILE='TEMPB.RST',STATUS='UNKNOWN')
        DO L=2,LA
 C        READ(1,*)LDUM,IDUM,JDUM,(TDUMMY(K),K=1,KC),TEMB(L) 

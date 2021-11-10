@@ -107,8 +107,7 @@ C
         DO L=2,LA
 		WQIH3(L) = WQIH2(L)
           WQIH2(L) = WQIH1(L)
-          WQIH1(L) = (1.-RICECOVL(L))*PARADJ*2.065*SOLSWRT(L)
-     &  	           +RICECOVL(L)*SIceAdj*PARADJ*2.065*SOLSWRT(L)
+          WQIH1(L) = PARADJ*2.065*SOLSWRT(L)
         ENDDO
         WQFD=1.
       ENDIF

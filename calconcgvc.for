@@ -243,7 +243,7 @@ C
       DO K=1,KS
       DO L=2,LA
         IF(LMASKDRY(L))THEN
-	    IF(W2(L,K).GE.0.0)THEN
+	    IF( W2(L,K).GE.0.0 .OR. K.EQ.1 )THEN       ! *** DSI
             KUPW(L,K)=K   
           ELSE
 	      KUPW(L,K)=K-1
@@ -870,11 +870,17 @@ C
         RCDZKMK=-DELTD2*CDZKMK(K)
         RCDZKK=-DELTD2*CDZKK(K)
         DO L=LF,LL
-         CCLBTMP(L)=RCDZKMK*GVCSCLPI(L)*HPI(L)*SWB3D(L,K-1)*AB(L,K-1)
-         CCUBTMP=RCDZKK*GVCSCLPI(L)*HPI(L)*SWB3D(L,K)*AB(L,K)
-         CCMBTMP=1.-CCLBTMP(L)-CCUBTMP
-         EEB(L)=1./(CCMBTMP-CCLBTMP(L)*CU1(L,K-1))
-         CU1(L,K)=CCUBTMP*EEB(L)
+          CCLBTMP(L)=RCDZKMK*GVCSCLPI(L)*HPI(L)*SWB3D(L,K-1)*AB(L,K-1)
+          CCUBTMP=RCDZKK*GVCSCLPI(L)*HPI(L)*SWB3D(L,K)*AB(L,K)
+          CCMBTMP=1.-CCLBTMP(L)-CCUBTMP
+          IF( ABS(CCMBTMP-CCLBTMP(L)*CU1(L,K-1)) > 1.E-8 )THEN    ! DSI 2014-07  ADDED TO PREVENT SINGLE PRECISION DIVIDE BY ZERO
+            EEB(L)=1./(CCMBTMP-CCLBTMP(L)*CU1(L,K-1))
+            CU1(L,K)=CCUBTMP*EEB(L)
+          ELSE
+            EEB(L)=1.
+            CCLBTMP(L)=0.
+            CU1(L,K)=0.
+          ENDIF
         ENDDO
         IF(ISTRAN(1).GE.1)THEN
           DO L=LF,LL
@@ -921,9 +927,14 @@ C
        LF=2+(ND-1)*LDM
        LL=LF+LDM-1
        DO L=LF,LL
-        CCLBTMP(L)=RCDZKMK*GVCSCLPI(L)*HPI(L)*SWB3D(L,K-1)*AB(L,K-1)
-        CCMBTMP=1.-CCLBTMP(L)
-        EEB(L)=1./(CCMBTMP-CCLBTMP(L)*CU1(L,K-1))
+         CCLBTMP(L)=RCDZKMK*GVCSCLPI(L)*HPI(L)*SWB3D(L,K-1)*AB(L,K-1)
+         CCMBTMP=1.-CCLBTMP(L)
+         IF( ABS(CCMBTMP-CCLBTMP(L)*CU1(L,K-1)) > 1.E-8 )THEN   ! DSI 2014-07  ADDED TO PREVENT SINGLE PRECISION DIVIDE BY ZERO
+           EEB(L)=1./(CCMBTMP-CCLBTMP(L)*CU1(L,K-1))
+         ELSE
+           EEB(L)=1.
+           CCLBTMP(L)=0.
+         ENDIF
        ENDDO
        IF(ISTRAN(1).GE.1)THEN
          DO L=LF,LL
